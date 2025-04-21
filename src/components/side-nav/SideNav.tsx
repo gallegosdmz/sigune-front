@@ -1,80 +1,80 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { BookOutlined, UserOutlined } from "@ant-design/icons"
 import type { MenuProps } from "antd"
 import { Layout, Menu, Typography } from "antd"
 import { useLocation, useNavigate } from "react-router-dom"
+import { useIsMobile } from "../../hooks/use-media-query"
 
 const { Sider } = Layout
 const { Title } = Typography
 
 type MenuItem = Required<MenuProps>["items"][number]
 
+interface SideNavProps {
+  isOpen: boolean
+}
+
 const getItem = (
   label: React.ReactNode,
   key: React.Key,
   icon?: React.ReactNode,
   children?: MenuItem[],
-  type?: 'group'
+  type?: "group",
 ): MenuItem => {
   return {
     key,
     icon,
     children,
     label,
-    type
+    type,
   } as MenuItem
 }
 
-//const items: MenuItem[] = [
-  
-  //getItem('Option 2', '2', <DesktopOutlined />),
-  //getItem('User', 'sub1', <UserOutlined />, [
-  //getItem('Tom', '3'),
-  //getItem('Bill', '4'),
-  //getItem('Alex', '5'),
-  //]),
-  //getItem('Team', 'sub2', <TeamOutlined />, [getItem('Team 1', '6'), getItem('Team 2', '8')]),x
-//]
-
-const SideNav = () => {
+const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
   const [collapsed, setCollapsed] = useState(false)
+  const isMobile = useIsMobile()
 
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useNavigate()
+  const location = useLocation()
 
-  let items: MenuProps['items'] = [];
+  // En dispositivos móviles, no permitimos colapsar manualmente
+  useEffect(() => {
+    if (!isMobile) {
+      // Solo permitir colapsar en dispositivos no móviles
+    } else {
+      setCollapsed(false) // En móviles siempre mostramos el menú completo cuando está abierto
+    }
+  }, [isMobile])
 
-  const allowedRoutes = [
-    '/panel-guion',
-    '/panel-rh'
-  ];
+  let items: MenuProps["items"] = []
 
-  const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route));
-  if ( !showSideNav ) return null;
+  const allowedRoutes = ["/panel-guion", "/panel-rh"]
 
-  if ( localStorage.getItem('typeUser') === 'admin_user' ) {
-    items = [
-      getItem("Guiones", "/panel-guion", <BookOutlined />),
-      getItem("Usuarios", "/panel-rh", <UserOutlined />),
-    ];
+  const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route))
+  if (!showSideNav) return null
+
+  if (localStorage.getItem("typeUser") === "admin_user") {
+    items = [getItem("Guiones", "/panel-guion", <BookOutlined />), getItem("Usuarios", "/panel-rh", <UserOutlined />)]
   } else {
-    return null;
+    return null
   }
 
   return (
     <Sider
-      collapsible
       collapsed={collapsed}
       onCollapse={(value) => setCollapsed(value)}
+      className={isMobile ? `${isOpen ? "open" : ""}` : ""}
       style={{
         height: "100vh",
         position: "fixed",
         left: 0,
         top: 0,
         bottom: 0,
+        zIndex: 40,
+        transition: "all 0.3s ease",
       }}
       theme="light"
     >
@@ -84,6 +84,7 @@ const SideNav = () => {
           margin: "16px 24px",
           paddingBottom: "16px",
           borderBottom: "1px solid #f0f0f0",
+          marginTop: isMobile ? "64px" : "16px", // Ajustar para el TopNav en móviles
         }}
       >
         <img src={`/img/logo.png`} alt="Logo" style={{ height: "40px" }} />

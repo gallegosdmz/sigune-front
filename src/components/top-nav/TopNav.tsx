@@ -1,56 +1,55 @@
-import { Avatar, Popover } from "antd";
-import { BellOutlined, UserOutlined } from "@ant-design/icons";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "antd/es/radio";
+"use client"
 
-export default function TopNav() {
-    const location = useLocation();
-    const navigate = useNavigate();
+import type React from "react"
+import { HamburgerMenu } from "../menu/hamburger-menu"
+import { useIsMobile } from "../../hooks/use-media-query"
+import { useNavigate } from "react-router-dom"
+import { Avatar, Dropdown, Menu } from "antd"
+import { LogoutOutlined, ProfileOutlined, UserOutlined } from "@ant-design/icons"
 
-    const userRole = localStorage.getItem('role');
+interface TopNavProps {
+  toggleSidebar: () => void
+  isSidebarOpen: boolean
+}
 
-    const logout = () => {
-        navigate('/');
-    }
+export const TopNav: React.FC<TopNavProps> = ({ toggleSidebar, isSidebarOpen }) => {
+  const isMobile = useIsMobile()
+  const navigate = useNavigate()
 
-    return (
-        <div className="h-16 px-5 flex flex-row items-center justify-between shadow-lg">
-          <div className="flex-1">
-            {userRole !== '1' && (
-              <div className="flex justify-center">
-                <img alt="Logo" className="h-10" />
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-5">
-            <Popover
-              placement="bottomRight"
-              trigger="click"
-              content={
-                <div>
-                  <div>Sin Notificaciones</div>
-                </div>
-              }
-            >
-              <BellOutlined className="text-xl text-slate-500 cursor-pointer" />
-            </Popover>
-            <Popover
-              placement="bottomRight"
-              trigger="click"
-              content={
-                <div className="flex flex-col gap-2">
-                  <Button
-                    className="text-red-500"
-                    onClick={logout}
-                  >
-                    Cerrar sesión
-                  </Button>
-                </div>
-              }
-            >
-              <Avatar icon={<UserOutlined />} className="cursor-pointer" />
-            </Popover>
-          </div>
+  const handleLogout = () => {
+    // Implementa tu lógica de cierre de sesión aquí
+    localStorage.removeItem("token")
+    localStorage.removeItem("typeUser")
+    localStorage.removeItem("user")
+    navigate("/login")
+  }
+
+  return (
+    <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-20 h-16">
+      <div className="h-full px-4 flex items-center justify-between">
+        <div className="flex items-center">
+          {isMobile && <HamburgerMenu isOpen={isSidebarOpen} toggle={toggleSidebar} />}
         </div>
-      );
+
+        <div className="flex items-center space-x-4">
+          {/* Menú de usuario */}
+          <Dropdown 
+            overlay={
+              <Menu>
+                <Menu.Item key="1" icon={<ProfileOutlined />}>
+                  Perfil
+                </Menu.Item>
+                <Menu.Item key="2" icon={<LogoutOutlined />} onClick={handleLogout}>
+                  Cerrar sesión
+                </Menu.Item>
+              </Menu>
+            } 
+            placement="bottomRight"
+          >
+          <Avatar style={{ marginRight: '24px' }} icon={<UserOutlined />} />
+         </Dropdown>
+        </div>
+      </div>
+    </header>
+  )
 }
