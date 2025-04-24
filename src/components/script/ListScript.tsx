@@ -81,7 +81,7 @@ const ListScript: React.FC = () => {
 
   useEffect(() => {
     ContentUtils.handleSetContentsWithScriptApproved( Number( idScript ), setData )
-  }, []);
+  }, [ showListExternal ]);
 
   const moveRow = (dragIndex: number, hoverIndex: number) => {
     
@@ -265,11 +265,12 @@ const ListScript: React.FC = () => {
         />
       </div>
       ) : (
-        <ListExternalContents 
-          script={Number( idScript )} 
+        <ListExternalContents
           setShowListExternal={ setShowListExternal }
           setVisibleViewNote={setVisibleViewNote}
           setVisibleViewSection={setVisibleViewSection}
+          setFile={setFile}
+          file={file}
           visibleViewNote={visibleViewNote}
           visibleViewSection={visibleViewSection}
         />

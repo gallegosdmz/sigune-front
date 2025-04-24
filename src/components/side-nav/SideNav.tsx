@@ -51,7 +51,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
 
   let items: MenuProps["items"] = []
 
-  const allowedRoutes = ["/panel-guion", "/panel-rh"]
+  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-auxiliares"]
 
   const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route))
   if (!showSideNav) return null
@@ -59,7 +59,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
   if (localStorage.getItem("typeUser") === "admin_user") {
     items = [getItem("Guiones", "/panel-guion", <BookOutlined />), getItem("Usuarios", "/panel-rh", <UserOutlined />)]
   } else {
-    return null
+    items = [getItem("Guiones", "/panel-auxiliares", <BookOutlined />)]
   }
 
   return (

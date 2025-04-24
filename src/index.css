@@ -50,3 +50,62 @@ code {
 .content-wrapper {
   padding-top: 64px; /* Altura del TopNav */
 }
+
+/* Estilos responsive para tablas */
+.ant-table-wrapper {
+  overflow-x: auto;
+}
+
+/* Ajustes para dispositivos móviles */
+@media (max-width: 767px) {
+  .ant-table-cell {
+    padding: 8px !important;
+  }
+
+  .ant-card-head-title {
+    padding: 12px 0 !important;
+  }
+
+  .ant-drawer-body {
+    padding: 12px !important;
+  }
+
+  .ant-form-item {
+    margin-bottom: 12px !important;
+  }
+
+  .ant-modal-body {
+    padding: 12px !important;
+  }
+}
+
+/* Ajustes para botones en móviles */
+@media (max-width: 767px) {
+  .action-column .ant-space {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .ant-btn {
+    padding: 4px 8px !important;
+    font-size: 12px !important;
+  }
+
+  .ant-space-item {
+    margin-bottom: 4px !important;
+  }
+}
+
+/* Mejoras para formularios responsivos */
+.responsive-form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .responsive-form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

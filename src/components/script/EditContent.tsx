@@ -97,7 +97,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
               formats={formats}
               style={{
                 height: 300,
-                marginBottom: 50,
+                marginBottom: 5,
                 borderRadius: 4,
                 border: "1px solid #d9d9d9",
                 overflow: "hidden",
@@ -176,31 +176,35 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
                 Guardar
               </Button>
 
-              {content?.status ? (
-                <Popconfirm
-                  title="¿Estás seguro de desaprobar esta nota?"
-                  onConfirm={() =>
-                    ContentUtils.handleDisapprove(content!, script!, setContents, setVisibleViewNote)
-                  }
-                  okText="Sí"
-                  cancelText="No"
-                >
-                  <Button danger>Desaprobar</Button>
-                </Popconfirm>
-              ) : (
-                <Popconfirm
-                  title="¿Estás seguro de aprobar esta nota?"
-                  onConfirm={() =>
-                    ContentUtils.handleApprove(content!, script!, setContents, setVisibleViewNote)
-                  }
-                  okText="Sí"
-                  cancelText="No"
-                >
-                  <Button type="default">Aprobar</Button>
-                </Popconfirm>
+              {localStorage.getItem('typeUser') && (
+                content?.status ? (
+                  <Popconfirm
+                    title="¿Estás seguro de desaprobar esta nota?"
+                    onConfirm={() =>
+                      ContentUtils.handleDisapprove(content!, script!, setContents, setVisibleViewNote)
+                    }
+                    okText="Sí"
+                    cancelText="No"
+                  >
+                    <Button className="bg-amber-500 text-white">Desaprobar</Button>
+                  </Popconfirm>
+                ) : (
+                  <Popconfirm
+                    title="¿Estás seguro de aprobar esta nota?"
+                    onConfirm={() =>
+                      ContentUtils.handleApprove(content!, script!, setContents, setVisibleViewNote)
+                    }
+                    okText="Sí"
+                    cancelText="No"
+                  >
+                    <Button className="bg-green-500 text-white" type="default">Aprobar</Button>
+                  </Popconfirm>
+                )
               )}
 
-              <Popconfirm
+
+              {localStorage.getItem('typeUser') ? (
+                <Popconfirm
                 title="¿Estás seguro de eliminar esta nota?"
                 onConfirm={() => {
                   ContentUtils.handleDelete(content!, script!, setContents, setVisibleViewNote);
@@ -213,6 +217,10 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
                   Eliminar
                 </Button>
               </Popconfirm>
+              ) : (
+                <></>
+              )}
+              
             </Space>
           </div>
         </Form>

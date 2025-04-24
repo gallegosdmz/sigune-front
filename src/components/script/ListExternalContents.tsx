@@ -6,20 +6,22 @@ import { Button, Card, Input as SearchInput } from "antd";
 import * as ContentUtils from '../../utils/ContentUtils';
 import { useEffect, useState } from "react";
 import EditContent from "./EditContent";
+import { useParams } from "react-router-dom";
 
 
 type Props = {
-    script: number,
     setShowListExternal: ( showListExternal: boolean ) => void,
     setVisibleViewNote: ( visibleViewNote: boolean ) => void,
     setVisibleViewSection: ( visibleViewSection: boolean ) => void,
+    setFile: ( file: any ) => void,
+    file: any | null,
     visibleViewNote: boolean,
     visibleViewSection: boolean
 }
 
 const { Search } = SearchInput;
 
-const ListExternalContents: React.FC<Props> = ({ script, setShowListExternal }) => {
+const ListExternalContents: React.FC<Props> = ({ setShowListExternal, setFile, file }) => {
     const [contents, setContents] = useState<Content[]>([]);
     const [content, setContent] = useState<Content | null>(null);
 
@@ -28,8 +30,10 @@ const ListExternalContents: React.FC<Props> = ({ script, setShowListExternal }) 
 
     const [searchTerm, setSearchTerm] = useState('');
 
+    const { idScript } = useParams<{ idScript: string }>();
+
     useEffect(() => {
-        ContentUtils.handleSetContentsWithScriptDisapproved( script, setContents );
+        ContentUtils.handleSetContentsWithScriptDisapproved( setContents );
     }, []);
 
     const filteredContents = contents.filter(
@@ -42,7 +46,7 @@ const ListExternalContents: React.FC<Props> = ({ script, setShowListExternal }) 
             title: "Titulo",
             dataIndex: "title",
             key: "title",
-            render: (_, record) => `${record.position!}. ${record.type} - ${record.title}`,
+            render: (_, record) => `${record.type} - ${record.title}`,
         },
         {
             title: "Usuario",
@@ -70,7 +74,7 @@ const ListExternalContents: React.FC<Props> = ({ script, setShowListExternal }) 
             <Button
                 type="link"
                 icon={<EyeOutlined />}
-                onClick={() => ContentUtils.handleModalView( record, setContent, record.type === 'Nota' ? setVisibleViewNote : setVisibleViewSection )}
+                onClick={() => ContentUtils.handleModalView( record, setContent, setFile ,record.type === 'Nota' ? setVisibleViewNote : setVisibleViewSection )}
             >
                 Ver
             </Button>
@@ -100,7 +104,8 @@ const ListExternalContents: React.FC<Props> = ({ script, setShowListExternal }) 
         </Card>
         <EditContent
           content={content}
-          script={1} // cambiarlo por idScript
+          script={Number( idScript )} // cambiarlo por idScript
+          file={file}
           setContents={setContents}
           setVisibleViewNote={setVisibleViewNote}
           setVisibleViewSection={setVisibleViewSection}

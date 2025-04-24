@@ -1,68 +1,58 @@
-import { Modal } from "antd";
-import { User } from "../../interfaces/User";
+"use client"
+
+import type React from "react"
+
+import { Modal, Typography, Descriptions } from "antd"
+import type { User } from "../../interfaces/User"
+import { useIsMobile } from "../../hooks/use-media-query"
 
 type Props = {
-    user: User | null,
-    modalView: boolean,
-    setModalView: ( modalView: boolean ) => void,
+  user: User | null
+  modalView: boolean
+  setModalView: (modalView: boolean) => void
 }
 
-const ListUser: React.FC< Props > = ({ user, modalView, setModalView }) => {
+const { Title } = Typography
 
-    let role;
-    let department;
+const ListUser: React.FC<Props> = ({ user, modalView, setModalView }) => {
+  const isMobile = useIsMobile()
 
-    if ( typeof user?.role === 'object' ) {
-      role = user.role.name;
-      department = typeof user.role.department === 'object' ? user.role.department.name : 'No encontrado'; 
-    }
+  let role
+  let department
 
-    return (
+  if (typeof user?.role === "object") {
+    role = user.role.name
+    department = typeof user.role.department === "object" ? user.role.department.name : "No encontrado"
+  }
+
+  return (
     <Modal
-        title="Detalles del Empleado"
-        open={ modalView }
-        onCancel={() => setModalView( false )}
-        footer={[]}
-      >
-        {user && (
-          <>
-            <p>
-              <strong>Nombre:</strong> { user.name }
-            </p>
-            <p>
-              <strong>Apellidos:</strong> { user.surname }
-            </p>
-            <p>
-              <strong>Correo Institucional:</strong> { user.institucionalEmail }
-            </p>
-            <p>
-              <strong>Puesto:</strong> { role }
-            </p>
-            <p>
-              <strong>Departamento:</strong> { department }
-            </p>
-            <p>
-              <strong>Número de Empleado:</strong> { user.numEmployee }
-            </p>
-            <p>
-              <strong>Telefono:</strong> { user.phone }
-            </p>
-            <p>
-              <strong>Dirección:</strong> { user.address }
-            </p>
-            <p>
-              <strong>CURP:</strong> { user.curp }
-            </p>
-            <p>
-              <strong>RFC:</strong> { user.rfc }
-            </p>
-            <p>
-              <strong>Fecha de Admisión:</strong> { new Date( user.dateAdmission! ).toLocaleDateString('es-ES') }
-            </p>
-          </>
-        )}
-      </Modal>
-    );
+      title={<Title level={4}>Detalles del Empleado</Title>}
+      open={modalView}
+      onCancel={() => setModalView(false)}
+      footer={[]}
+      width={isMobile ? "95%" : 600}
+      centered
+    >
+      {user && (
+        <Descriptions layout={isMobile ? "vertical" : "horizontal"} column={isMobile ? 1 : 2} bordered>
+          <Descriptions.Item label="Nombre">{user.name}</Descriptions.Item>
+          <Descriptions.Item label="Apellidos">{user.surname}</Descriptions.Item>
+          <Descriptions.Item label="Correo Institucional">{user.institucionalEmail}</Descriptions.Item>
+          <Descriptions.Item label="Puesto">{role || "No asignado"}</Descriptions.Item>
+          <Descriptions.Item label="Departamento">{department || "No asignado"}</Descriptions.Item>
+          <Descriptions.Item label="Número de Empleado">{user.numEmployee}</Descriptions.Item>
+          <Descriptions.Item label="Teléfono">{user.phone}</Descriptions.Item>
+          <Descriptions.Item label="Dirección">{user.address}</Descriptions.Item>
+          <Descriptions.Item label="CURP">{user.curp}</Descriptions.Item>
+          <Descriptions.Item label="RFC">{user.rfc}</Descriptions.Item>
+          <Descriptions.Item label="Fecha de Admisión">
+            {new Date(user.dateAdmission!).toLocaleDateString("es-ES")}
+          </Descriptions.Item>
+        </Descriptions>
+      )}
+    </Modal>
+  )
 }
 
-export default ListUser;
+export default ListUser

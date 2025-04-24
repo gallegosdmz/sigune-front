@@ -5,6 +5,7 @@ import ProtectedRoute from "./ProtectedRoutes";
 import HRPanel from "../pages/RH/Panel";
 import ScriptPanel from "../pages/Script/Panel";
 import ListScript from "../components/script/ListScript";
+import AxuliaresPanel from "../pages/Script/Panel-Axuliares";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -31,6 +32,14 @@ const AppRoutes: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <ListScript />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/panel-auxiliares"
+                element={
+                    <ProtectedRoute>
+                        <AxuliaresPanel />
                     </ProtectedRoute>
                 }
             />

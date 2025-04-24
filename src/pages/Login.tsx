@@ -33,12 +33,14 @@ const LoginPanel: React.FC = () => {
         if ( data.token ) {
             loginUser( data.token );
 
-            if ( data.role.permissions.includes('admin_user') ) {
-                localStorage.setItem('typeUser', 'admin_user');
-            }
-
             message.success('¡Bienvenido!');
-            navigate('/panel', { replace: true });
+
+            if ( data.role.permissions.includes('admin_user') ) {
+                navigate('/panel-guion', { replace: true });
+                localStorage.setItem('typeUser', 'admin_user');
+            } else {
+                navigate('/panel-auxiliares', { replace: true });
+            }
         }
     };
 

@@ -36,9 +36,6 @@ export const TopNav: React.FC<TopNavProps> = ({ toggleSidebar, isSidebarOpen }) 
           <Dropdown 
             overlay={
               <Menu>
-                <Menu.Item key="1" icon={<ProfileOutlined />}>
-                  Perfil
-                </Menu.Item>
                 <Menu.Item key="2" icon={<LogoutOutlined />} onClick={handleLogout}>
                   Cerrar sesión
                 </Menu.Item>

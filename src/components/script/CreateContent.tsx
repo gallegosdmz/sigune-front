@@ -107,7 +107,7 @@ const CreateContent: React.FC<Props> = ({
               formats={formats}
               style={{
                 height: 300,
-                marginBottom: 50,
+                marginBottom: 5,
                 borderRadius: 4,
                 border: "1px solid #d9d9d9",
                 overflow: "hidden",

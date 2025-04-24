@@ -2,12 +2,12 @@ import React from 'react';
 import { Layout } from 'antd';
 import useTokenRenewal from '../../services/UseTokenRenewal';
 import { useNavigate } from 'react-router-dom';
-import PanelScript from '../../components/script/PanelScript';
 import { useIsMobile } from '../../hooks/use-media-query';
+import ListContents from '../../components/script/ListContents';
 
 const { Content } = Layout;
 
-const ScriptPanel: React.FC = () => {
+const AxuliaresPanel: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   useTokenRenewal( navigate );
@@ -16,11 +16,11 @@ const ScriptPanel: React.FC = () => {
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: isMobile ? '12px' : '24px' }}>
               
-        <PanelScript />
+        <ListContents />
 
       </Content>
     </Layout>
   )
 }
 
-export default ScriptPanel;
+export default AxuliaresPanel;

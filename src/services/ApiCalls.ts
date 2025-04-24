@@ -270,6 +270,15 @@ export const getContents = async() => {
     return response.data;
 }
 
+export const getContentsForUser = async() => {
+    const response = await axios.get(
+        `${ API_URL }/scripts/contents-for-user`,
+        getAuthHeaders()
+    );
+
+    return response.data;
+}
+
 export const getContentsForScript = async ( idScript: number ) => {
     const response = await axios.get(
         `${ API_URL }/scripts/contents-for-script/${ idScript }`,
@@ -288,9 +297,9 @@ export const getContentsApprovedForScript = async( idScript: number ) => {
     return response.data;
 }
 
-export const getContentsDisapprovedForScript = async( idScript: number ) => {
+export const getContentsDisapprovedForScript = async() => {
     const response = await axios.get(
-        `${ API_URL }/scripts/withContentDisapproved/${ idScript }`,
+        `${ API_URL }/scripts/withContentDisapproved`,
         getAuthHeaders()
     );
 

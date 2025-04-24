@@ -1,6 +1,6 @@
 import { FormInstance, message } from "antd";
 import { Content } from "../interfaces/Content";
-import { changePositionContent, createContent, createFileAudio, deleteContent, getContentsApprovedForScript, getContentsDisapprovedForScript, getContentsForScript, getFileAudio, updateContent } from "../services/ApiCalls";
+import { changePositionContent, createContent, createFileAudio, deleteContent, getContentsApprovedForScript, getContentsDisapprovedForScript, getContentsForScript, getContentsForUser, getFileAudio, updateContent } from "../services/ApiCalls";
 import { handleErrorServer } from "./Custom/CustomErrors";
 
 export const handleSetContentsWithScript = async(
@@ -11,6 +11,17 @@ export const handleSetContentsWithScript = async(
         const contents = await getContentsForScript( idScript );
         setContents( contents );
 
+    } catch ( error ) {
+        handleErrorServer( error );
+    }
+}
+
+export const handleSetContentsForUser = async(
+    setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void 
+) => {
+    try {
+        const contents = await getContentsForUser();
+        setContents(contents);
     } catch ( error ) {
         handleErrorServer( error );
     }
@@ -32,14 +43,14 @@ export const handleSetContentsWithScriptApproved = async(
 }
 
 export const handleSetContentsWithScriptDisapproved = async(
-    idScript: number,
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void
 ) => {
     try {
-        const contents = await getContentsDisapprovedForScript( idScript );
+        const contents = await getContentsDisapprovedForScript();
         setContents( contents );
 
     } catch ( error ) {
+        console.log( error );
         handleErrorServer( error );
     }
 }
@@ -99,7 +110,7 @@ export const handleEditSave = async(
     record: Content,
     editForm: FormInstance,
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
-    script: number,
+    script: number | null,
     setVisibleViewContent: ( visibleViewContent: boolean ) => void
 ) => {
     try {
@@ -108,7 +119,12 @@ export const handleEditSave = async(
 
         await updateContent( record.id!, { script, type, ...values } );
 
-        const contents = await getContentsApprovedForScript( script );
+        let contents;
+        if ( script === null ) {
+            contents = await getContentsForUser();
+        } else {
+            contents = await getContentsApprovedForScript( script! );
+        }
         setContents( contents );
 
         message.success('Contenido editado correctamente');
@@ -166,7 +182,7 @@ export const handleApprove = async(
         }
         await updateContent( id!, contentData );
 
-        const contents = await getContentsApprovedForScript( script );
+        const contents = await getContentsDisapprovedForScript();
         setContents( contents );
         setVisibleAddContent( false );
 
@@ -192,7 +208,7 @@ export const handleAddCancel = (
 export const handleAddSave = async(
     addForm: FormInstance,
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
-    script: number,
+    script: number | null,
     setVisibleAddContent: ( visibleAddContent: boolean ) => void
 ) => {
     try {
@@ -213,7 +229,13 @@ export const handleAddSave = async(
 
         await createContent({ script, type, url: fileId, ...valueDetails });
 
-        const contents = await getContentsApprovedForScript( script );
+        let contents;
+
+        if ( script === null ) {
+            contents = await getContentsForUser();
+        } else {
+            contents = await getContentsApprovedForScript( script! )
+        }
 
         message.success('Contenido agregado exitosamente');
 
@@ -237,7 +259,7 @@ export const handleDelete = async(
     try {
         await deleteContent( content.id! );
 
-        if ( !content.status ) setContents( await getContentsDisapprovedForScript( script ) );
+        if ( !content.status ) setContents( await getContentsDisapprovedForScript() );
         if ( content.status ) setContents( await getContentsApprovedForScript( script ) ); 
 
         setVisibleAddContent( false );
