@@ -1,5 +1,5 @@
 import React from "react";
-import { $getSelection, $isRangeSelection, FORMAT_TEXT_COMMAND } from "lexical";
+import { FORMAT_TEXT_COMMAND } from "lexical";
 import {
     INSERT_UNORDERED_LIST_COMMAND,
     INSERT_ORDERED_LIST_COMMAND,

@@ -10,7 +10,7 @@ import AxuliaresPanel from "../pages/Script/Panel-Axuliares";
 const AppRoutes: React.FC = () => {
     return (
         <Routes>
-            <Route path="/login" element={<LoginPanel />} />
+            <Route path="/" element={<LoginPanel />}/>
             <Route
                 path="/panel-rh"
                 element={

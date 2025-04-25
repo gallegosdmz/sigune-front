@@ -19,7 +19,8 @@ const LoginPanel: React.FC = () => {
 
     // Reedireción en caso de que ya exista autenticación
     useEffect(() => {
-        if ( localStorage.getItem('token') ) navigate('/panel', { replace: true });
+        if ( localStorage.getItem('token') && localStorage.getItem('typeUser') ) navigate('/panel-guion', { replace: true });
+        if ( localStorage.getItem('token') && !localStorage.getItem('typeUser') ) navigate('/panel-auxiliares', { replace: true });
     }, []);
 
     const onFinish = async ( values: LoginData ) => {

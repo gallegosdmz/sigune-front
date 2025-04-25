@@ -223,6 +223,7 @@ const ListScript: React.FC = () => {
                     },
                 }}
                 onRow={(record, index) => {
+                  console.log(record);
                     return {
                     index: index as number,
                     moveRow,

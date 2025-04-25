@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Layout } from 'antd';
 import useTokenRenewal from '../../services/UseTokenRenewal';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,10 @@ const ScriptPanel: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   useTokenRenewal( navigate );
+
+  useEffect(() => {
+      if ( !localStorage.getItem('typeUser') || localStorage.getItem('typeUser') !== 'admin_user') navigate('/', { replace: true });
+    }, []);
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

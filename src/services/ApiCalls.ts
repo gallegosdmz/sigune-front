@@ -3,7 +3,7 @@ import { Role } from "../interfaces/Role";
 import { User } from "../interfaces/User";
 import { Script } from "../interfaces/Script";
 import { Content } from "../interfaces/Content";
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://82.25.93.144/api';
 
 const getAuthHeaders = () => ({
     headers: {

@@ -105,10 +105,10 @@ const EditUser: React.FC<Props> = ({ user, setUsers, setVisibleEdit, visibleEdit
         </Form.Item>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Form.Item name="curp" label="CURP" rules={[{ required: true, message: "Por favor confirme la CURP" }]}>
+          <Form.Item name="curp" label="CURP" rules={[{ required: true, message: "Por favor confirme la CURP" }, {validator: UserUtils.handleValidateCURP}]}>
             <Input />
           </Form.Item>
-          <Form.Item name="rfc" label="RFC" rules={[{ required: true, message: "Por favor confirme el RFC" }]}>
+          <Form.Item name="rfc" label="RFC" rules={[{ required: true, message: "Por favor confirme el RFC" }, {validator: UserUtils.handleValidateRFC}]}>
             <Input />
           </Form.Item>
         </div>

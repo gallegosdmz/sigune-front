@@ -5,7 +5,7 @@ import { HamburgerMenu } from "../menu/hamburger-menu"
 import { useIsMobile } from "../../hooks/use-media-query"
 import { useNavigate } from "react-router-dom"
 import { Avatar, Dropdown, Menu } from "antd"
-import { LogoutOutlined, ProfileOutlined, UserOutlined } from "@ant-design/icons"
+import { LogoutOutlined, UserOutlined } from "@ant-design/icons"
 
 interface TopNavProps {
   toggleSidebar: () => void
@@ -21,7 +21,7 @@ export const TopNav: React.FC<TopNavProps> = ({ toggleSidebar, isSidebarOpen }) 
     localStorage.removeItem("token")
     localStorage.removeItem("typeUser")
     localStorage.removeItem("user")
-    navigate("/login")
+    navigate("/")
   }
 
   return (

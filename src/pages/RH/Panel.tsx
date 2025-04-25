@@ -9,6 +9,7 @@ import PanelUser from "../../components/user/PanelUser"
 import PanelRole from "../../components/role/PanelRole"
 import PanelDepartment from "../../components/department/PanelDepartment"
 import { useIsMobile } from "../../hooks/use-media-query"
+import { useEffect } from "react"
 
 const { Content } = Layout
 const { TabPane } = Tabs
@@ -18,6 +19,10 @@ const HRPanel: React.FC = () => {
   const isMobile = useIsMobile()
   useTokenRenewal(navigate)
 
+  useEffect(() => {
+    if ( !localStorage.getItem('typeUser') || localStorage.getItem('typeUser') !== 'admin_user') navigate('/', { replace: true });
+  }, []);
+  
   return (
     <Layout>
       <Content style={{ padding: isMobile ? "12px" : "24px" }}>

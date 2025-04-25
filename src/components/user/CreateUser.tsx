@@ -7,7 +7,6 @@ import type { User } from "../../interfaces/User"
 import * as UserUtils from "../../utils/UserUtils"
 import * as RoleUtils from "../../utils/RoleUtils"
 import { validateEmail } from "../../utils/Validations/ValidateEmail"
-import { validatePassword } from "../../utils/Validations/ValidatePassword"
 import type { Role } from "../../interfaces/Role"
 import { useIsMobile } from "../../hooks/use-media-query"
 
@@ -75,7 +74,7 @@ const CreateUser: React.FC<Props> = ({ setUsers, setVisibleAdd, visibleAdd }) =>
           <Form.Item
             name="password"
             label="Contraseña"
-            rules={[{ required: true, message: "Por favor ingresa tu contraseña" }, { validator: validatePassword }]}
+            rules={[{ required: true, message: "Por favor ingresa tu contraseña" }, { validator: UserUtils.handleValidatePassword }]}
           >
             <Input.Password autoComplete="new-password" />
           </Form.Item>
@@ -124,10 +123,10 @@ const CreateUser: React.FC<Props> = ({ setUsers, setVisibleAdd, visibleAdd }) =>
         </Form.Item>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Form.Item name="curp" label="CURP" rules={[{ required: true, message: "Por favor confirme la CURP" }]}>
+          <Form.Item name="curp" label="CURP" rules={[{ required: true, message: "Por favor confirme la CURP" }, {validator: UserUtils.handleValidateCURP }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="rfc" label="RFC" rules={[{ required: true, message: "Por favor confirme el RFC" }]}>
+          <Form.Item name="rfc" label="RFC" rules={[{ required: true, message: "Por favor confirme el RFC" }, {validator: UserUtils.handleValidateRFC}]}>
             <Input />
           </Form.Item>
         </div>
@@ -167,7 +166,7 @@ const CreateUser: React.FC<Props> = ({ setUsers, setVisibleAdd, visibleAdd }) =>
             <Select placeholder="Selecciona un genero">
               <Select.Option value={"MASCULINO"}>Masculino</Select.Option>
 
-              <Select.Option value={"fEMENINO"}>Femenino</Select.Option>
+              <Select.Option value={"FEMENINO"}>Femenino</Select.Option>
             </Select>
           </Form.Item>
         </div>

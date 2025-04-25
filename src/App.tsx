@@ -11,7 +11,7 @@ import { useIsMobile } from "./hooks/use-media-query"
 
 const App: React.FC = () => {
   const location = useLocation()
-  const isLoginPage = location.pathname === "/login"
+  const isLoginPage = location.pathname === "/"
   const isMobile = useIsMobile()
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile)

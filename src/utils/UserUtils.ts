@@ -166,3 +166,28 @@ export const handleDeleteSave = async (
     handleErrorServer( error );
   }
 }
+
+// Handles - Formularios
+export const handleValidatePassword = (_: any, value: string) => {
+  const passwordRegex = /(?:(?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/;
+  if (!value || passwordRegex.test(value)) {
+    return Promise.resolve();
+  }
+  return Promise.reject("La contraseña debe tener mayúsculas, minúsculas y al menos un número o carácter especial.");
+}
+
+export const handleValidateCURP = (_: any, value: string) => {
+  const curpRegex = /^[A-Z]{4}\d{6}[HM][A-Z]{5}[A-Z\d]{2}$/;
+  if (!value || curpRegex.test(value)) {
+    return Promise.resolve();
+  }
+  return Promise.reject("CURP inválida. Verifica el formato.");
+}
+
+export const handleValidateRFC = (_: any, value: string) => {
+  const rfcRegex = /^[A-ZÑ&]{3,4}\d{6}[A-Z\d]{3}$/;
+  if (!value || rfcRegex.test(value)) {
+    return Promise.resolve();
+  }
+  return Promise.reject("RFC inválido. Verifica el formato.");
+}
