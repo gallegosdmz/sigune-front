@@ -44,7 +44,7 @@ export const handleAddSave = async(
         addFormRole.resetFields();
 
     } catch ( error ) {
-        console.log( error );
+        
         handleErrorServer( error );
     }
 }
@@ -102,17 +102,17 @@ export const handleEditSave = async (
     try {
         const values = await editFormRole.validateFields();
 
-        console.log('values')
+        
 
         await updateRole( role.id!, values );
 
-        console.log('ya pasé update')
+        
 
         const updatedRoles = await getRoles();
 
-        console.log('ya pasé busqueda');
+        
         setRoles( updatedRoles );
-        console.log('ya pasé asignación');
+        
 
         message.success('Puesto editado existosamente');
 

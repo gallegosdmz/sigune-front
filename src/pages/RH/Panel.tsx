@@ -44,7 +44,7 @@ const HRPanel: React.FC = () => {
               tab={
                 <span>
                   <TeamOutlined />
-                  Roles
+                  Puestos
                 </span>
               }
               key="2"

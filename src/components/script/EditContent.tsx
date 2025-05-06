@@ -1,9 +1,9 @@
 import type React from "react"
 
-import { Button, Modal, Form, Input, Space, Popconfirm, Upload, message } from "antd"
+import { Button, Modal, Form, Input, Space, Popconfirm, Upload, message, Select } from "antd"
 import type { Content } from "../../interfaces/Content"
 import * as ContentUtils from "../../utils/ContentUtils"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import ReactQuill from "react-quill"
 import { InboxOutlined, PlayCircleOutlined } from "@ant-design/icons"
 
@@ -11,6 +11,7 @@ type Props = {
   content: Content | null,
   script: number | null,
   file: any | null,
+  setFile: (file: any) => void,
   setContents: (content: (prevContent: Content[]) => Content[]) => void,
   setVisibleViewNote: (visibleViewNote: boolean) => void,
   setVisibleViewSection: (visibleViewSection: boolean) => void,
@@ -18,21 +19,53 @@ type Props = {
   visibleViewSection: boolean
 }
 
-const EditContent: React.FC<Props> = ({ content, script, file, setContents, setVisibleViewNote, setVisibleViewSection, visibleViewNote, visibleViewSection }) => {
+const EditContent: React.FC<Props> = ({ content, script, file, setFile, setContents, setVisibleViewNote, setVisibleViewSection, visibleViewNote, visibleViewSection }) => {
+  const quillRef = useRef<ReactQuill | null>(null);
+  
   const [editForm] = Form.useForm();
   const [editorContent, setEditorContent] = useState<string>("")
   
 
+  // 1. Efecto para setear datos del formulario
   useEffect(() => {
     if (content) {
-      // Establecer el título del contenido
       editForm.setFieldsValue({
         title: content.title,
         textContent: content.textContent,
+        dependence: content.dependence,
+        classification: content.classification
       });
-
+      setEditorContent(content.textContent); // Esto también es importante
     }
   }, [content, editForm]);
+
+  // 2. Efecto separado para bloquear selección/copiar
+  useEffect(() => {
+    if (!visibleViewNote || !quillRef.current) return;
+  
+    const timeout = setTimeout(() => {
+      const editor = quillRef.current?.getEditor?.();
+      const editorDiv = editor?.root;
+  
+      if (editorDiv) {
+        editorDiv.style.userSelect = "none";
+  
+        const handleCopy = (e: ClipboardEvent) => e.preventDefault();
+        const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+  
+        editorDiv.addEventListener("copy", handleCopy);
+        editorDiv.addEventListener("contextmenu", handleContextMenu);
+  
+        return () => {
+          editorDiv.removeEventListener("copy", handleCopy);
+          editorDiv.removeEventListener("contextmenu", handleContextMenu);
+        };
+      }
+    }, 100); // esperar un poco a que el editor se renderice
+  
+    return () => clearTimeout(timeout);
+  }, [visibleViewNote]);
+
 
 
   // Quill editor modules and formats configuration
@@ -68,7 +101,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
       <Modal
         title="Editar Nota"
         open={visibleViewNote}
-        onCancel={() => ContentUtils.handleAddCancel(setVisibleViewNote)}
+        onCancel={() => ContentUtils.handleEditCancel(setVisibleViewNote, setFile)}
         footer={null}
         centered
         width={800}
@@ -92,6 +125,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
             <ReactQuill
               theme="snow"
               value={editorContent}
+              ref={quillRef}
               onChange={setEditorContent}
               modules={modules}
               formats={formats}
@@ -105,6 +139,30 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
               }}
               className="custom-quill"
             />
+          </Form.Item>
+
+          <Form.Item
+              name="dependence"
+              label="Dependencia"
+              rules={[{ required: true, message: "Ingresa la dependencia gubernamental" }]}
+          >
+              <Select placeholder="Selecciona una dependencia">
+                <Select.Option value={"Secretaria de Salud"}>Secretaria de Salud</Select.Option>
+                <Select.Option value={"Secreatria de Educación"}>Secreatria de Educación</Select.Option>
+              </Select>
+          </Form.Item>
+
+          <Form.Item
+              name="classification"
+              label="Clasificación"
+              rules={[{ required: true, message: "Ingresa la clasificación" }]}
+          >
+              <Select placeholder="Selecciona una clasificación">
+                <Select.Option value={"Contenido General"}>Contenido General</Select.Option>
+                <Select.Option value={"Boletín"}>Boletín</Select.Option>
+                <Select.Option value={"Editoriales"}>Editoriales</Select.Option>
+                <Select.Option value={"Menciones"}>Menciones</Select.Option>
+              </Select>
           </Form.Item>
 
           <Form.Item
@@ -161,7 +219,10 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
 
           <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <Space>
-              <Button
+              {localStorage.getItem('typeUser') === 'editor_user' ? (
+                <></>
+              ) : (
+                <Button
                 type="primary"
                 onClick={() =>
                   ContentUtils.handleEditSave(
@@ -175,8 +236,9 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
               >
                 Guardar
               </Button>
+              )}
 
-              {localStorage.getItem('typeUser') && (
+              {localStorage.getItem('typeUser') === 'admin_user' && (
                 content?.status ? (
                   <Popconfirm
                     title="¿Estás seguro de desaprobar esta nota?"
@@ -203,7 +265,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setContents, setV
               )}
 
 
-              {localStorage.getItem('typeUser') ? (
+              {localStorage.getItem('typeUser') === 'admin_user' ? (
                 <Popconfirm
                 title="¿Estás seguro de eliminar esta nota?"
                 onConfirm={() => {

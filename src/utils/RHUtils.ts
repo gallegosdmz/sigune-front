@@ -16,7 +16,7 @@ export const fetchAndSetData = async(
             getUsers() 
         ]);
 
-        console.log( users.data );
+        
 
         setDepartments( departments.data );
         setRoles( roles.data );

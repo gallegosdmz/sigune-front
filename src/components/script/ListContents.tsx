@@ -53,6 +53,12 @@ const ListContents: React.FC = () => {
                 : "Fecha no disponible",
         },
         {
+            title: 'Estado',
+            dataIndex: 'status',
+            key: 'status',
+            render: (_, record) => record.status ? <p className='text-green-400'>Aprobado</p> : <p className='text-red-400'>Sin Aprobar</p>
+        },
+        {
             title: "Acciones",
             key: "actions",
             render: (_, record: Content) => (
@@ -98,6 +104,7 @@ const ListContents: React.FC = () => {
                 content={content}
                 script={null}
                 file={file}
+                setFile={setFile}
                 setContents={setContents}
                 setVisibleViewNote={setVisibleViewNote}
                 setVisibleViewSection={setVisibleViewSection}

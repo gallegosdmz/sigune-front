@@ -20,7 +20,9 @@ const LoginPanel: React.FC = () => {
     // Reedireción en caso de que ya exista autenticación
     useEffect(() => {
         if ( localStorage.getItem('token') && localStorage.getItem('typeUser') ) navigate('/panel-guion', { replace: true });
-        if ( localStorage.getItem('token') && !localStorage.getItem('typeUser') ) navigate('/panel-auxiliares', { replace: true });
+        if ( localStorage.getItem('token') && localStorage.getItem('typeUser') === 'editor_user' ) navigate('/panel-guion', { replace: true });
+        if ( localStorage.getItem('token') && localStorage.getItem('typeUser') === 'locutor_user' ) navigate('/panel-newsletters', { replace: true });
+        if ( localStorage.getItem('token') && localStorage.getItem('typeUser') === 'reportero_user' ) navigate('/panel-reporteros', { replace: true });
     }, []);
 
     const onFinish = async ( values: LoginData ) => {
@@ -39,8 +41,15 @@ const LoginPanel: React.FC = () => {
             if ( data.role.permissions.includes('admin_user') ) {
                 navigate('/panel-guion', { replace: true });
                 localStorage.setItem('typeUser', 'admin_user');
+            } else if (data.role.permissions.includes('view_scripts')) {
+                navigate('/panel-guion', { replace: true });
+                localStorage.setItem('typeUser', 'editor_user');
+            } else if (data.role.permissions.includes('view_newsletters')) {
+                navigate('/panel-newsletters', { replace: true })
+                localStorage.setItem('typeUser', 'locutor_user');
             } else {
-                navigate('/panel-auxiliares', { replace: true });
+                navigate('/panel-reporteros', { replace: true });
+                localStorage.setItem('typeUser', 'reportero_user');
             }
         }
     };

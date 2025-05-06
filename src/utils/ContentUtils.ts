@@ -35,8 +35,6 @@ export const handleSetContentsWithScriptApproved = async(
         const contents = await getContentsApprovedForScript( idScript );
         setContents( contents );
 
-        console.log( contents );
-
     } catch ( error ) {
         handleErrorServer( error );
     }
@@ -50,7 +48,6 @@ export const handleSetContentsWithScriptDisapproved = async(
         setContents( contents );
 
     } catch ( error ) {
-        console.log( error );
         handleErrorServer( error );
     }
 }
@@ -85,13 +82,18 @@ export const handleModalView = async(
     setContent( content );
 
     // Buscar audio
-    if ( content.url ) {
-        const file = await getFileAudio( content.url );
-        console.log( file );
+    if ( content.url !== 'Sin Audio' ) {
+        const file = await getFileAudio( content.url! );
+        
         setFile( file );
     }
 
     setModalView( true );
+}
+
+export const handleCopy = (e: any) => {
+    e.preventDefault();
+    message.error('No está permitido copiar el texto');
 }
 
 export const handleView = ( setVisibleViewContent: ( visibleViewContent: boolean ) => void ) => {
@@ -99,12 +101,19 @@ export const handleView = ( setVisibleViewContent: ( visibleViewContent: boolean
 }
 
 export const handleViewCancel = (
-    setVisibleViewContent: ( visibleViewContent: boolean ) => void
+    setVisibleViewContent: ( visibleViewContent: boolean ) => void,
 ) => {
     setVisibleViewContent( false );
 }
 
 // Handles - Editar Contenido
+export const handleEditCancel = (
+    setVisibleViewContent: ( visibleViewContent: boolean ) => void,
+    setFile: ( file: any ) => void,
+) => {
+    setVisibleViewContent( false );
+    setFile(null);
+}
 
 export const handleEditSave = async(
     record: Content,
@@ -113,6 +122,21 @@ export const handleEditSave = async(
     script: number | null,
     setVisibleViewContent: ( visibleViewContent: boolean ) => void
 ) => {
+    const today = new Date();
+    const createdAt = new Date(record.createdAt!);
+
+    const isDifferentDay =
+        createdAt.getFullYear() !== today.getFullYear() ||
+        createdAt.getMonth() !== today.getMonth() ||
+        createdAt.getDate() !== today.getDate();
+    
+    if (!isDifferentDay) {
+        editForm.resetFields();
+        setVisibleViewContent( false );
+
+        return message.error('No puedes editar este contenido');
+    }
+    
     try {
         const values = await editForm.validateFields();
         const type = 'textContent' in values ? 'Nota' : 'Sección';
@@ -134,7 +158,6 @@ export const handleEditSave = async(
 
 
     } catch ( error ) {
-        console.log( error );
         handleErrorServer( error );
     }
 }
@@ -145,16 +168,19 @@ export const handleDisapprove = async(
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     setVisibleAddContent: ( visibleAddContent: boolean ) => void
 ) => {
-    const { id, status, createdAt, updatedAt, user, isDeleted, ...contentDetails } = content;
+    const { id, status, createdAt, updatedAt, isDeleted, ...contentDetails } = content;
 
     try {
         const contentData = {
             ...contentDetails,
             status: false,
+            script: null,
         }
+
 
         await updateContent( id!, contentData );
         
+
         const contents = await getContentsApprovedForScript( script );
         setContents( contents );
         setVisibleAddContent( false );
@@ -172,7 +198,7 @@ export const handleApprove = async(
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     setVisibleAddContent: ( visibleAddContent: boolean ) => void
 ) => {
-    const { id, status, createdAt, updatedAt, user, isDeleted, ...contentDetails } = content;
+    const { id, status, createdAt, updatedAt, isDeleted, ...contentDetails } = content;
 
     try {
         const contentData = {
@@ -180,6 +206,7 @@ export const handleApprove = async(
             status: true,
             script,
         }
+
         await updateContent( id!, contentData );
 
         const contents = await getContentsDisapprovedForScript();
@@ -189,7 +216,6 @@ export const handleApprove = async(
         message.success('Contenido aprobado correctamente');
 
     } catch ( error ) {
-        console.log( error );
         handleErrorServer( error );
     }
 }
@@ -209,11 +235,37 @@ export const handleAddSave = async(
     addForm: FormInstance,
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     script: number | null,
-    setVisibleAddContent: ( visibleAddContent: boolean ) => void
+    setVisibleAddContent: ( visibleAddContent: boolean ) => void,
+    setLoading: (loading: boolean) => void // Paso el setLoading aquí
 ) => {
     try {
+        setLoading(true); // Activamos el estado de loading
+
         const values = await addForm.validateFields();
+
+        if (!values.dependence) {
+            await createContent({
+                type: 'Sección',
+                title: values.title,
+                textContent: 'Sn',
+                dependence: 'Sn',
+                classification: 'Sn',
+                status: true,
+                script: script,
+            });
+
+            setLoading(false);
+
+            addForm.resetFields();
+            setContents( await getContentsApprovedForScript( script! ) );
+            setVisibleAddContent( false );
+
+            return message.success('Contenido agregado exitosamente');
+        }
+
         const { audioFile, ...valueDetails } = values;
+
+        
 
         const fileObj = audioFile?.[0]?.originFileObj;
 
@@ -237,17 +289,22 @@ export const handleAddSave = async(
             contents = await getContentsApprovedForScript( script! )
         }
 
+        setLoading(false);
+
         message.success('Contenido agregado exitosamente');
 
         addForm.resetFields();
         setContents( contents );
         setVisibleAddContent( false );
+        
 
     } catch ( error ) {
-        console.log( error );
+        
+        setLoading(false);
         handleErrorServer( error );
     }
 }
+
 
 // Handles - Eliminar
 export const handleDelete = async(

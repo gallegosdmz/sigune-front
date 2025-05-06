@@ -25,5 +25,10 @@ export const permissionsOptions = [
     { label: "Eliminar nota", value: "delete_content" },
     { label: "Ver notas", value: "view_contents" },
     { label: "Ver nota", value: "view_content" },
+    { label: "Crear Boletín", value: "create_newsletter" },
+    { label: "Actualizar Boletín", value: "update_newsletter" },
+    { label: "Eliminar Boletín", value: "delete_newsletter" },
+    { label: "Ver Boletines", value: "view_newsletters" },
+    { label: "Ver Boletín", value: "view_newsletter" },
     { label: "Verificar estado de autenticación", value: "check_auth_status" },
 ];

@@ -7,7 +7,7 @@ import ListContents from '../../components/script/ListContents';
 
 const { Content } = Layout;
 
-const AxuliaresPanel: React.FC = () => {
+const ReporterosPanel: React.FC = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   useTokenRenewal( navigate );
@@ -23,4 +23,4 @@ const AxuliaresPanel: React.FC = () => {
   )
 }
 
-export default AxuliaresPanel;
+export default ReporterosPanel;

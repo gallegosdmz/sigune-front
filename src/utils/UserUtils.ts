@@ -56,7 +56,7 @@ export const handleAddSave = async (
       addForm.resetFields();
 
     } catch (error) {
-        console.log( error );
+        
 
         handleErrorServer( error );
     }
@@ -120,7 +120,7 @@ export const handleEditSave = async (
     const updatedUsers = await getUsers();
     setUsers( updatedUsers );
 
-    message.success('Usuario editado exitosamente');
+    message.success('Usuario editado correctamente');
 
     setVisibleEdit( false );
     editForm.resetFields();
@@ -157,7 +157,7 @@ export const handleDeleteSave = async (
 
   try {
     await deleteUser( user.id! );
-    message.success('Usuario eliminado exitosamente');
+    message.success('Usuario eliminado correctamente');
 
     const users = await getUsers();
     setUsers( users );

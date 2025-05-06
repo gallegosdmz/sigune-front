@@ -17,7 +17,7 @@ const ProtectedRoute: React.FC< ProtectedRouteProps > = ({ children }) => {
 
     if ( !isAuthenticated ) {
         // Redirigir si no está autenticado después de la verificación
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
 
     // Si está autenticado, renderiza los children (el contenido protegido)

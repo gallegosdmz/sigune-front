@@ -40,3 +40,9 @@
 .read-the-docs {
   color: #888;
 }
+
+.underline-error {
+  text-decoration: underline red wavy;
+  cursor: help;
+}
+

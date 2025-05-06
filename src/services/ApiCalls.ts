@@ -3,7 +3,8 @@ import { Role } from "../interfaces/Role";
 import { User } from "../interfaces/User";
 import { Script } from "../interfaces/Script";
 import { Content } from "../interfaces/Content";
-const API_URL = 'http://82.25.93.144/api';
+import { NewsLetter } from "../interfaces/NewsLetter";
+const API_URL = 'http://localhost:3000/api';
 
 const getAuthHeaders = () => ({
     headers: {
@@ -174,7 +175,7 @@ export const fetchLogin = async( email: string, password: string ) => {
     } catch ( error ) {
         // Verifica si el error proviene de Axios
         if ( axios.isAxiosError( error ) ) {
-            console.log( error );
+            
 
             return error.response?.data;
         } else {
@@ -216,6 +217,21 @@ export const getScript = async( id: number ) => {
     const response = await axios.get(
         `${ API_URL }/scripts/${ id }`,
         getAuthHeaders()
+    );
+
+    return response.data;
+}
+
+export const getReport = async(startDate: Date, endDate: Date) => {
+    const data = {
+        startDate,
+        endDate,
+    }
+
+    const response = await axios.post(
+        `${ API_URL }/scripts/count-contents-by-date`,
+        data,
+        getAuthHeaders(),
     );
 
     return response.data;
@@ -364,13 +380,61 @@ export const createFileAudio = async(file: File) => {
       }
     );
   
-    console.log(response);
+    
     return response.data;
   };
 
 export const getFileAudio = async( fileId: string ) => {
     const response = await axios.get(
         `${ API_URL }/files/${ fileId }`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+// BITACORAS
+export const createNewsLetter = async(newsLetter: NewsLetter) => {
+    const response = await axios.post(
+        `${ API_URL }/newsletters`,
+        newsLetter,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getNewsLetters = async() => {
+    const response = await axios.get(
+        `${ API_URL }/newsletters`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getNewsLetter = async(id: number) => {
+    const response = await axios.get(
+        `${ API_URL }/newsletters/${ id }`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const updateNewsLetter = async(id: number, newsLetter: NewsLetter) => {
+    const response = await axios.patch(
+        `${ API_URL }/newsletters/${ id }`,
+        newsLetter,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const deleteNewsLetter = async(id: number) => {
+    const response = await axios.delete(
+        `${ API_URL }/newsletters/${ id }`,
         getAuthHeaders(),
     );
 

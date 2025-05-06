@@ -58,7 +58,7 @@ export const handleAddSave = async (
         addForm.resetFields();
 
     } catch ( error ) {
-        console.log({ error });
+        
 
         handleErrorServer( error );
     }

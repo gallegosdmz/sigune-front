@@ -6,10 +6,12 @@ export interface Content {
     type: string;
     title: string;
     textContent: string;
+    dependence: string;
+    classification: string;
     url?: string;
     position?: number;
     status: boolean;
-    script?: number | Script;
+    script?: number | Script | null;
     user?: number | User;
     createdAt?: Date;
     updatedAt?: Date;

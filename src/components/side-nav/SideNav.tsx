@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { BookOutlined, UserOutlined } from "@ant-design/icons"
+import { BookOutlined, FileOutlined, ScanOutlined, UserOutlined } from "@ant-design/icons"
 import type { MenuProps } from "antd"
 import { Layout, Menu, Typography } from "antd"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -51,15 +51,19 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
 
   let items: MenuProps["items"] = []
 
-  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-auxiliares"]
+  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-reporteros", "/panel-newsletters", "/panel-reports"]
 
   const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route))
   if (!showSideNav) return null
 
   if (localStorage.getItem("typeUser") === "admin_user") {
-    items = [getItem("Guiones", "/panel-guion", <BookOutlined />), getItem("Usuarios", "/panel-rh", <UserOutlined />)]
-  } else {
-    items = [getItem("Guiones", "/panel-auxiliares", <BookOutlined />)]
+    items = [getItem("Guiones", "/panel-guion", <BookOutlined />), getItem("Boletines", "/panel-newsletters", <FileOutlined/>), getItem("Usuarios", "/panel-rh", <UserOutlined />), getItem("Reportes", "/panel-reports", <ScanOutlined />)]
+  } else if (localStorage.getItem('typeUser') === 'editor_user') {
+    items = [getItem("Guiones", "/panel-guion", <BookOutlined />)]
+  } else if (localStorage.getItem('typeUser') === 'reportero_user') {
+    items = [getItem("Guiones", "/panel-reporteros", <BookOutlined />)]
+  } else if (localStorage.getItem('typeUser') === 'locutor_user') {
+    items = [getItem("Boletines", "/panel-newsletters", <FileOutlined/>)]
   }
 
   return (

@@ -40,14 +40,6 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
             key: 'dateEmission',
         },
         {
-            title: 'Estado',
-            dataIndex: 'status',
-            key: 'status',
-            render: (record: Script) => {
-                return record.status ? 'Aprobado' : 'No Aprobado';
-            }
-        },
-        {
             title: 'Acción',
             key: 'action',
             className: 'action-column',
@@ -57,23 +49,31 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
                   icon={<DatabaseOutlined className="text-green-700" />}
                   onClick={() => navigate(`/panel-guion/${record.id}`)}
                 />
-                <Button
-                  icon={<EditOutlined className="text-blue-700" />}
-                  onClick={() => ScriptUtils.handleEdit(
-                    record,
-                    setScript,
-                    editForm,
-                    setVisibleEdit
-                  )}
-                />
-                <Button
-                  icon={<DeleteOutlined className="text-red-700" />}
-                  onClick={() =>
-                    ScriptUtils.handleDelete(
+                {localStorage.getItem('typeUser') === 'admin_user' ? (
+                  <>
+                    <Button
+                    icon={<EditOutlined className="text-blue-700" />}
+                    onClick={() => ScriptUtils.handleEdit(
                       record,
-                      setScripts
+                      setScript,
+                      editForm,
+                      setVisibleEdit
                     )}
-                />
+                    />
+
+                    <Button
+                    icon={<DeleteOutlined className="text-red-700" />}
+                    onClick={() =>
+                      ScriptUtils.handleDelete(
+                        record,
+                        setScripts
+                      )}
+                    />  
+                  </>
+                ) : (
+                  <></>
+                )}
+                
               </Space>
             )
           }
@@ -89,7 +89,7 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
           }
         >
             <Search
-                placeholder="Buscar Empleado"
+                placeholder="Buscar Guión"
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ marginBottom: 16 }}
             />

@@ -13,7 +13,7 @@ const ScriptPanel: React.FC = () => {
   useTokenRenewal( navigate );
 
   useEffect(() => {
-      if ( !localStorage.getItem('typeUser') || localStorage.getItem('typeUser') !== 'admin_user') navigate('/', { replace: true });
+      if ( !localStorage.getItem('typeUser') || localStorage.getItem('typeUser') !== 'admin_user' && localStorage.getItem('typeUser') !== 'editor_user') navigate('/', { replace: true });
     }, []);
 
   return (
