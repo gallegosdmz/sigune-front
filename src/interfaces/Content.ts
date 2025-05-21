@@ -5,6 +5,7 @@ export interface Content {
     id?: number;
     type: string;
     title: string;
+    head: string;
     textContent: string;
     dependence: string;
     classification: string;

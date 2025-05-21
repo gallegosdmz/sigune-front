@@ -1,7 +1,8 @@
 import { FormInstance, message, Modal } from "antd";
 import { NewsLetter } from "../interfaces/NewsLetter";
-import { createNewsLetter, deleteNewsLetter, getNewsLetters, updateNewsLetter } from "../services/ApiCalls";
+import { createNewsLetter, deleteNewsLetter, getNewsLetterForPeriod, getNewsLetters, updateNewsLetter } from "../services/ApiCalls";
 import { handleErrorServer } from "./Custom/CustomErrors";
+import { Content } from "../interfaces/Content";
 
 const { confirm } = Modal;
 
@@ -10,6 +11,19 @@ export const handleSetNewsLetters = async(
 ) => {
     try {
         const newsLetters = await getNewsLetters();
+        setNewsLetters(newsLetters);
+
+    } catch (error) {
+        handleErrorServer(error);
+    }
+}
+
+export const handleSetNewsLettersForPeriod = async(
+    period: number,
+    setNewsLetters: (newsLetters: (prevNewLetters: Content[]) => Content[]) => void
+) => {
+    try {
+        const newsLetters = await getNewsLetterForPeriod(period);
         setNewsLetters(newsLetters);
 
     } catch (error) {

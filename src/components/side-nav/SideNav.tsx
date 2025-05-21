@@ -51,13 +51,24 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
 
   let items: MenuProps["items"] = []
 
-  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-reporteros", "/panel-newsletters", "/panel-reports"]
+  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-reporteros", "/panel-newsletters", "/panel-reports", "/panel-respaldo", "/panel-reports-mensuales"]
 
   const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route))
   if (!showSideNav) return null
 
   if (localStorage.getItem("typeUser") === "admin_user") {
-    items = [getItem("Guiones", "/panel-guion", <BookOutlined />), getItem("Boletines", "/panel-newsletters", <FileOutlined/>), getItem("Usuarios", "/panel-rh", <UserOutlined />), getItem("Reportes", "/panel-reports", <ScanOutlined />)]
+    items = [
+      getItem("Guiones", "/panel-guion", <BookOutlined />),
+      getItem("Boletines", "boletines", <FileOutlined />, [
+        getItem("Listar Boletines", "/panel-newsletters"),
+        getItem("Respaldo", "/panel-respaldo")
+      ]),
+      getItem("Usuarios", "/panel-rh", <UserOutlined />),
+      getItem("Reportes", "reportes", <ScanOutlined />, [
+        getItem("Mensuales", "/panel-reports-mensuales"),
+        getItem("Trimestrales", "/panel-reports")
+      ])
+    ];
   } else if (localStorage.getItem('typeUser') === 'editor_user') {
     items = [getItem("Guiones", "/panel-guion", <BookOutlined />)]
   } else if (localStorage.getItem('typeUser') === 'reportero_user') {
@@ -91,7 +102,7 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
           marginTop: isMobile ? "64px" : "16px", // Ajustar para el TopNav en móviles
         }}
       >
-        <img src={`/img/logo.png`} alt="Logo" style={{ height: "40px" }} />
+        <img src={`/img/logo.png`} alt="Logo" style={{ height: "31px" }} />
       </Title>
       <div className="demo-logo-vertical" />
       <Menu

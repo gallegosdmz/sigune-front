@@ -6,6 +6,7 @@ export const handleErrorServer = ( error: unknown ): void => {
     if ( axios.isAxiosError( error ) ) {
         message.error( error.response?.data.error );
     } else {
+        console.log(error);
         message.error('Ocurrió un error inesperado');
     }
 }

@@ -17,6 +17,11 @@ const { Title } = Typography
 const ListNewsLetter: React.FC<Props> = ({ newsLetter, modalView, setModalView }) => {
   const isMobile = useIsMobile()
 
+  const stripHtml = (html: string): string => {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
 
   return (
     <Modal
@@ -24,7 +29,7 @@ const ListNewsLetter: React.FC<Props> = ({ newsLetter, modalView, setModalView }
       open={modalView}
       onCancel={() => setModalView(false)}
       footer={[]}
-      width={isMobile ? "95%" : 600}
+      width={isMobile ? "95%" : 1200}
       centered
       bodyStyle={{ padding: 16 }} // padding personalizado
     >
@@ -44,7 +49,7 @@ const ListNewsLetter: React.FC<Props> = ({ newsLetter, modalView, setModalView }
                 whiteSpace: "pre-wrap",
               }}
             >
-              {newsLetter.textContent}
+              {stripHtml(newsLetter.textContent)}
             </div>
           </Descriptions.Item>
 

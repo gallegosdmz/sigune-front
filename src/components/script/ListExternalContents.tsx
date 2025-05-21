@@ -106,6 +106,7 @@ const ListExternalContents: React.FC<Props> = ({ setShowListExternal, setFile, f
           content={content}
           script={Number( idScript )} // cambiarlo por idScript
           file={file}
+          setFile={setFile}
           setContents={setContents}
           setVisibleViewNote={setVisibleViewNote}
           setVisibleViewSection={setVisibleViewSection}

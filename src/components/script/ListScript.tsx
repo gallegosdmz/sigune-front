@@ -111,7 +111,7 @@ const ListScript: React.FC = () => {
 
   const getLogoBuffer = async () => {
     const response = await fetch(
-      "https://res.cloudinary.com/gallegos-dev/image/upload/v1746470082/Logo_Actualizado_010425_rx8gyh.png",
+      "https://res.cloudinary.com/gallegos-dev/image/upload/v1747338557/Captura_de_pantalla_2025-05-15_134857_exjtsy.png",
     )
     const blob = await response.blob()
     return await blob.arrayBuffer()
@@ -120,8 +120,8 @@ const ListScript: React.FC = () => {
   const getDateMx = () => {
     const date = new Date();
     const meses = [
-        'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
     ];
     const dia = date.getDate();
     const mes = meses[date.getMonth()];
@@ -129,10 +129,56 @@ const ListScript: React.FC = () => {
     return `${dia} de ${mes} del ${año}`;
   }
 
-  const stripHtml = (html: string): string => {
-      const tmp = document.createElement("div");
-      tmp.innerHTML = html;
-      return tmp.textContent || tmp.innerText || "";
+  const parseHtmlToDocxRuns = (html: string): Paragraph[] => {
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = html;
+
+    const paragraphs: Paragraph[] = [];
+
+    wrapper.querySelectorAll("p").forEach(p => {
+      const runs: TextRun[] = [];
+
+      p.childNodes.forEach(node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+          const text = node.textContent || "";
+          if (text.trim()) {
+            runs.push(
+              new TextRun({
+                text,
+                font: "Arial",
+                size: 26,
+              })
+            );
+          }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+          const el = node as HTMLElement;
+          const tag = el.tagName.toLowerCase();
+
+          if (tag === "br") {
+            runs.push(new TextRun({ break: 1 }));
+          } else {
+            const text = el.textContent || "";
+            if (text.trim()) {
+              runs.push(
+                new TextRun({
+                  text,
+                  bold: tag === "b" || tag === "strong",
+                  italics: tag === "i" || tag === "em",
+                  font: "Arial",
+                  size: 26,
+                })
+              );
+            }
+          }
+        }
+      });
+
+      if (runs.length > 0) {
+        paragraphs.push(new Paragraph({ children: runs }));
+      }
+    });
+
+    return paragraphs;
   };
 
   const exportToWord = async () => {
@@ -181,64 +227,79 @@ const ListScript: React.FC = () => {
       alignment: AlignmentType.CENTER
     })
 
-    const contentParagraphs = data.map((item, index) => {
-      if (item.type === 'Sección') {
-        return new Paragraph({
-          children: [
-            new TextRun({
-              text: `${index + 1}. ${item.type} - ${item.title}`,
-              bold: true,
-              break: 1,
-              font: 'Arial',
-              size: 26,
-            }),
-          ],
-          spacing: { after: 200 },
-        })
-
-      } else {
-        return new Paragraph({
-          children: [
-            new TextRun({
-              text: `${index + 1}. ${item.type} - ${item.title}`,
-              bold: true,
-              break: 1,
-              font: 'Arial',
-              size: 26,
-            }),
-            new TextRun({
-              text: `Autor: ${
-                typeof item.user === "object" && item.user !== null
-                  ? `${item.user.name} ${item.user.surname}`
-                  : "Desconocido"
+    const contentParagraphs = data.flatMap((item, index) => {
+      const headerParagraph = new Paragraph({
+        children: [
+          new TextRun({
+            text: `${index + 1}. ${item.type} - ${item.title}`,
+            bold: true,
+            break: 1,
+            font: 'Arial',
+            size: 26,
+          }),
+          new TextRun({
+            text: `Autor: ${typeof item.user === "object" && item.user !== null
+                ? `${item.user.name} ${item.user.surname}`
+                : "Desconocido"
               }`,
-              italics: true,
-              break: 1,
-              size: 26,
-            }),
-            new TextRun({
-              text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}`,
-              break: 1,
-              font: 'Arial',
-              size: 26,
-            }),
-            new TextRun({
-              text: stripHtml(item.textContent),
-              break: 2,
-              font: 'Arial',
-              size: 26,
-            }),
-          ],
-          spacing: { after: 200 },
-        })
+            italics: true,
+            break: 1,
+            size: 26,
+          }),
+          new TextRun({
+            text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            })}`,
+            break: 1,
+            font: 'Arial',
+            size: 26,
+          }),
+        ],
+        spacing: { after: 100 },
+      });
 
-      }
-      
-    })
+      const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
+
+      return [headerParagraph, ...contentParagraphs];
+    });
+
+    // Firma al final del documento (alineada y centrada como en el ejemplo)
+    const signatureLine = new Paragraph({
+      children: [
+        new TextRun({
+          text: "_____________________________________",
+          font: "Arial",
+          size: 24,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 600, after: 100 },
+    });
+
+    const signatureName = new Paragraph({
+      children: [
+        new TextRun({
+          text: "Lic. Martha Gabriela Yeverino Sifuentes",
+          font: "Arial",
+          size: 24,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+    });
+
+    const signaturePosition = new Paragraph({
+      children: [
+        new TextRun({
+          text: "Jefa del Departamento de Noticias",
+          font: "Arial",
+          size: 24,
+        }),
+      ],
+      alignment: AlignmentType.CENTER,
+    });
+
 
     const doc = new Document({
       creator: "SIGUNE",
@@ -251,7 +312,7 @@ const ListScript: React.FC = () => {
               children: [imageParagraph],
             }),
           },
-          children: [title, ...contentParagraphs],
+          children: [title, ...contentParagraphs, signatureLine, signatureName, signaturePosition],
         },
       ],
     })
@@ -262,15 +323,22 @@ const ListScript: React.FC = () => {
     saveAs(blob, "GUION_NOTICIAS.docx")
   }
 
+  const typeUser = localStorage.getItem("typeUser");
+
   const columns: ColumnsType<Content> = [
-    {
-      title: "Posición",
-      dataIndex: "position",
-      key: "position",
-      width: 60,
-      className: "drag-visible",
-      render: () => <MenuOutlined style={{ cursor: "grab", color: "#999" }} />,
-    },
+    ...(typeUser === "admin_user"
+      ? [
+        {
+          title: "Posición",
+          dataIndex: "position",
+          key: "position",
+          width: 60,
+          className: "drag-visible",
+          render: () => <MenuOutlined style={{ cursor: "grab", color: "#999" }} />,
+        },
+      ]
+      : []),
+
     {
       title: "Titulo",
       dataIndex: "title",
@@ -290,10 +358,10 @@ const ListScript: React.FC = () => {
       render: (_, record) =>
         record.createdAt
           ? new Date(record.createdAt).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
           : "Fecha no disponible",
     },
     {
@@ -316,7 +384,8 @@ const ListScript: React.FC = () => {
         </Button>
       ),
     },
-  ]
+  ];
+
 
   const handleMenuClick = (e: { key: string }) => {
     if (e.key === "1") {
@@ -332,33 +401,47 @@ const ListScript: React.FC = () => {
     }
   }
 
-  const items: MenuProps["items"] = [
-    {
-      key: "1",
-      label: "Nota",
-      onClick: handleMenuClick,
-    },
-    {
-      key: "2",
-      label: "Sección",
-      onClick: handleMenuClick,
-    },
-    {
-      key: "3",
-      label: "Externos",
-      onClick: handleMenuClick,
-    },
-    {
-      key: "4",
-      label: "Resumen",
-      onClick: handleMenuClick,
-    },
-    {
-      key: "5",
-      label: "Exportar",
-      onClick: handleMenuClick,
-    },
-  ]
+  let items: MenuProps["items"];
+
+  if (localStorage.getItem("typeUser") === "admin_user") {
+    items = [
+      {
+        key: "1",
+        label: "Agregar Nota",
+        onClick: handleMenuClick,
+      },
+      {
+        key: "2",
+        label: "Agregar Sección",
+        onClick: handleMenuClick,
+      },
+      {
+        key: "3",
+        label: "Ver Externos",
+        onClick: handleMenuClick,
+      },
+      {
+        key: "4",
+        label: "Resumen",
+        onClick: handleMenuClick,
+      },
+      {
+        key: "5",
+        label: "Exportar",
+        onClick: handleMenuClick,
+      },
+    ]
+  } else if (localStorage.getItem('typeUser') === 'editor_user') {
+    items = [
+      {
+        key: "5",
+        label: "Exportar",
+        onClick: handleMenuClick,
+      },
+    ]
+  }
+
+
 
   return (
     <>
@@ -368,19 +451,15 @@ const ListScript: React.FC = () => {
             title="Guión"
             extra={
               <Dropdown menu={{ items }} trigger={["click"]} onOpenChange={(open) => setDropdownOpen(open)}>
-                {localStorage.getItem("typeUser") === "admin_user" ? (
-                  <Button type="primary">
-                    <DownOutlined
-                      className={css`
+                <Button type="primary">
+                  <DownOutlined
+                    className={css`
                       transition: transform 0.3s ease;
                       transform: rotate(${dropdownOpen ? "180deg" : "0deg"});
                     `}
-                    />
-                    Agregar Contenido{" "}
-                  </Button>
-                ) : (
-                  <></>
-                )}
+                  />
+                  Seleccionar Opciones{" "}
+                </Button>
               </Dropdown>
             }
           >
@@ -401,7 +480,7 @@ const ListScript: React.FC = () => {
                     index: index as number,
                     moveRow,
                     // Añadimos un manejador de eventos para cumplir con el tipo esperado
-                    onClick: () => {}, // Manejador vacío para satisfacer el tipo
+                    onClick: () => { }, // Manejador vacío para satisfacer el tipo
                   } as React.HTMLAttributes<HTMLElement> & {
                     index: number
                     moveRow: (dragIndex: number, hoverIndex: number) => void

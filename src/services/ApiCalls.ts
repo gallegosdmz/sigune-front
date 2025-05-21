@@ -4,7 +4,7 @@ import { User } from "../interfaces/User";
 import { Script } from "../interfaces/Script";
 import { Content } from "../interfaces/Content";
 import { NewsLetter } from "../interfaces/NewsLetter";
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://82.25.93.144/api';
 
 const getAuthHeaders = () => ({
     headers: {
@@ -407,6 +407,15 @@ export const createNewsLetter = async(newsLetter: NewsLetter) => {
 export const getNewsLetters = async() => {
     const response = await axios.get(
         `${ API_URL }/newsletters`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getNewsLetterForPeriod = async(period: number) => {
+    const response = await axios.get(
+        `${ API_URL }/scripts/newsletters-for-period/${ period }`,
         getAuthHeaders(),
     );
 

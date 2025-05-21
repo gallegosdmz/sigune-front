@@ -8,6 +8,8 @@ import ListScript from "../components/script/ListScript";
 import NewsLetterPanel from "../pages/NewsLetter/Panel";
 import ReporterosPanel from "../pages/Script/Panel-Reporteros";
 import ReportPanel from "../pages/Report/Panel";
+import PanelRespaldo from "../components/newsletter/PanelRespaldo";
+import ReportPanelMensual from "../pages/Report/Panel-Mensual";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -58,6 +60,22 @@ const AppRoutes: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <ReportPanel />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/panel-reports-mensuales"
+                element={
+                    <ProtectedRoute>
+                        <ReportPanelMensual />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/panel-respaldo"
+                element={
+                    <ProtectedRoute>
+                        <PanelRespaldo />
                     </ProtectedRoute>
                 }
             />

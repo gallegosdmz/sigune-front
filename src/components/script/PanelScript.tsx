@@ -13,6 +13,8 @@ const PanelScript: React.FC = () => {
 
     const [ visibleAdd, setVisibleAdd ] = useState<boolean>( false );
     const [ visibleEdit, setVisibleEdit ] = useState<boolean>( false );
+
+    const [modalResumen, setModalResumen] = useState<boolean>(false);
     
     // FORMS
     const [ addForm ] = Form.useForm();
@@ -46,6 +48,8 @@ const PanelScript: React.FC = () => {
               setVisibleEdit={ setVisibleEdit }
               setScript={ setScript }
               setScripts={ setScripts }
+              setModalResumen={setModalResumen}
+              modalResumen={modalResumen}
               editForm={ editForm }
             />
           </Col>

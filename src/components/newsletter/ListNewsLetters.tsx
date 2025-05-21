@@ -64,35 +64,56 @@ const ListNewLetters: React.FC<Props> = ({
                         icon={<DatabaseOutlined className="text-green-700"/>}
                         onClick={() => NewsLetterUtils.handleModalView(record, setNewsLetter, setModalView)}
                     />
-                    <Button
+                    {localStorage.getItem('typeUser') === 'admin_user' ? (
+                        <>
+                        <Button
                         icon={<EditOutlined className="text-blue-700"/>}
                         onClick={() => NewsLetterUtils.handleEdit(record, setNewsLetter, editForm, setVisibleEdit)}
-                    />
-                    <Button
-                        icon={<DeleteOutlined className="text-red-700"/>}
-                        onClick={() => NewsLetterUtils.handleDelete(record, setNewsLetters)}
-                    />
+                        />
+                        <Button
+                            icon={<DeleteOutlined className="text-red-700"/>}
+                            onClick={() => NewsLetterUtils.handleDelete(record, setNewsLetters)}
+                        />
+                        </>
+                    ) : (
+                        <></>
+                    )}
                 </Space>
             )
         }
     ];
 
     return (
-        <Card 
-          title="Lista de Boletines"
-          extra={
-            <Button type="primary" icon={<PlusOutlined />} onClick={ () => setVisibleAdd( true ) }>
-              Agregar Boletín
-            </Button>
-          }
-        >
-            <Search
-                placeholder="Buscar Boletín por Clasificación"
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{ marginBottom: 16 }}
-            />
-            <Table columns={ columns } dataSource={ filteredNewsLetters } rowKey="id" />
-        </Card>
+        <>
+            {localStorage.getItem('typeUser') === 'admin_user' ? (
+                <Card 
+                    title="Lista de Boletines"
+                    extra={
+                        <Button type="primary" icon={<PlusOutlined />} onClick={ () => setVisibleAdd( true ) }>
+                            Agregar Boletín
+                        </Button>
+                    }
+                >
+                    <Search
+                        placeholder="Buscar Boletín por Clasificación"
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ marginBottom: 16 }}
+                    />
+                    <Table columns={ columns } dataSource={ filteredNewsLetters } rowKey="id" />
+                </Card>
+            ) : (
+                <Card 
+                    title="Lista de Boletines"
+                >
+                    <Search
+                        placeholder="Buscar Boletín por Clasificación"
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        style={{ marginBottom: 16 }}
+                    />
+                    <Table columns={ columns } dataSource={ filteredNewsLetters } rowKey="id" />
+                </Card>
+            )}
+        </>
     );
 }
 

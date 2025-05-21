@@ -4,44 +4,35 @@ import type React from "react"
 
 import { Button, message, Modal, Typography } from "antd"
 import { useIsMobile } from "../../hooks/use-media-query"
-import { Content } from "../../interfaces/Content"
 import { useEffect, useState } from "react"
-import { User } from "../../interfaces/User"
 import Table, { ColumnsType } from "antd/es/table"
 import { Script } from "../../interfaces/Script"
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType, Header } from "docx"
 import { saveAs } from "file-saver"
+import { Content } from "../../interfaces/Content"
 
 type Props = {
   setModalResumen: (modalResumen: boolean) => void,
   modalResumen: boolean,
-  contents: Content[]
+  scripts: Script[]
 }
 
 type TableItem = {
   key: number;
-  type: string;
   title: string;
-  textContent: string;
-  dependence: string;
-  classification: string;
-  url?: string;
-  position?: number;
-  status: boolean;
-  script?: number | Script | null;
-  user?: User;
-  createdAt: Date;
+  dateEmission: Date;
+  contents: Content[];
 }
 
 const { Title } = Typography
 
-const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents }) => {
+const ListResumenSemanal: React.FC<Props> = ({ setModalResumen, modalResumen, scripts }) => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
-  const [data, setData] = useState<Content[]>([]);
+  const [data, setData] = useState<Script[]>([]);
 
   useEffect(() => {
-    const filter = contents.filter(content => content.type !== 'Sección');
-    setData(filter);
+    console.log(data);
+    setData(scripts);
 
   }, [modalResumen]);
 
@@ -50,17 +41,9 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
 
   const dataSource: TableItem[] = data.map((item, index) => ({
     key: Number(item.id ?? index),
-    type: item.type,
     title: item.title,
-    textContent: item.textContent,
-    dependence: item.dependence,
-    classification: item.classification,
-    url: item.url,
-    position: item.position,
-    status: item.status,
-    script: item.script,
-    user: typeof item.user === "object" && item.user !== null ? item.user : undefined,
-    createdAt: item.createdAt!
+    dateEmission: item.dateEmission,
+    contents: item.contents!,
   })) || [];
 
   const columns: ColumnsType<TableItem> = [
@@ -70,10 +53,9 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
       key: "title",
     },
     {
-      title: "Usuario",
-      dataIndex: "user",
-      key: "user",
-      render: (user?: User) => user ? `${user.name} ${user.surname}` : "Sin usuario",
+      title: 'Fecha de Emisión',
+      dataIndex: 'dateEmission',
+      key: 'dateEmission',
     },
   ]
 
@@ -82,18 +64,6 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
     onChange: (newSelectedRowKeys: React.Key[]) => {
       setSelectedRowKeys(newSelectedRowKeys)
     },
-  }
-
-  const getDateMx = () => {
-    const date = new Date();
-    const meses = [
-      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
-      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
-    ];
-    const dia = date.getDate();
-    const mes = meses[date.getMonth()];
-    const año = date.getFullYear();
-    return `${dia} de ${mes} del ${año}`;
   }
 
   const getLogoBuffer = async () => {
@@ -156,74 +126,118 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
     return paragraphs;
   };
 
-  const exportToWord = async (data: TableItem[]) => {
+  const exportToWord = async (data: any[]) => {
+    const lastDay = data[0].dateEmission ? new Date(data[0].dateEmission).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+      : "Fecha no disponible";
+
+    const firstDay = data.length > 0
+      ? data[data.length - 1].dateEmission
+      : null;
+
+    const fDayParsed = firstDay ? new Date(firstDay).toLocaleDateString("es-ES", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+      : "Fecha no disponible";
+
     const logoBuffer = await getLogoBuffer()
 
     const image = new ImageRun({
       data: logoBuffer,
       transformation: {
         width: 500,
-        height: 60,
+        height: 65,
       },
-      type: "png", // Add the type property
+      type: "png",
     })
 
     const imageParagraph = new Paragraph({
       children: [image],
-      alignment: "center", // opcional
+      alignment: AlignmentType.CENTER,
       spacing: { after: 200 },
     })
 
     const title = new Paragraph({
       children: [
         new TextRun({
-          text: `NOTAS ${getDateMx().toUpperCase()}`,
+          text: `RESUMEN SEMANAL DEL ${lastDay.toUpperCase()} al ${fDayParsed.toUpperCase()}`,
           bold: true,
-          size: 26,
+          size: 32,
           font: 'Arial',
         }),
       ],
       heading: HeadingLevel.TITLE,
       spacing: { after: 300 },
-      alignment: AlignmentType.CENTER
+      alignment: AlignmentType.CENTER,
     })
 
-    const contentParagraphs = data.flatMap((item, index) => {
-      const headerParagraph = new Paragraph({
+    const allContent: Paragraph[] = []
+
+    data.forEach((guion, gIndex) => {
+      console.log(guion);
+      // Título del guión
+      allContent.push(new Paragraph({
         children: [
           new TextRun({
-            text: `${index + 1}. ${item.type} - ${item.title}`,
+            text: `GUION ${gIndex + 1}: ${guion.title}`,
             bold: true,
-            break: 1,
+            size: 28,
             font: 'Arial',
-            size: 26,
           }),
           new TextRun({
-            text: `Autor: ${typeof item.user === "object" && item.user !== null
-              ? `${item.user.name} ${item.user.surname}`
-              : "Desconocido"
-              }`,
-            italics: true,
-            break: 1,
-            size: 26,
-          }),
-          new TextRun({
-            text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
+            text: ` - ${new Date(guion.dateEmission).toLocaleDateString("es-ES", {
               day: "numeric",
               month: "long",
               year: "numeric",
             })}`,
-            break: 1,
-            font: 'Arial',
-            size: 26,
+            italics: true,
+            size: 24,
           }),
         ],
-        spacing: { after: 100 },
+        spacing: { after: 200 },
+      }))
+
+      guion.contents.forEach((item: any, index: number) => {
+        const headerParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: `${index + 1}. ${item.type} - ${item.title}`,
+              bold: true,
+              break: 1,
+              font: 'Arial',
+              size: 26,
+            }),
+            new TextRun({
+              text: `Autor: ${typeof item.user === "object" && item.user !== null
+                  ? `${item.user.name} ${item.user.surname}`
+                  : "Desconocido"
+                }`,
+              italics: true,
+              break: 1,
+              size: 26,
+            }),
+            new TextRun({
+              text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}`,
+              break: 1,
+              font: 'Arial',
+              size: 26,
+            }),
+          ],
+          spacing: { after: 100 },
+        });
+
+        const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
+        allContent.push(headerParagraph, ...contentParagraphs);
       });
-
-      const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
-
-      return [headerParagraph, ...contentParagraphs];
     });
 
     // Firma al final del documento (alineada y centrada como en el ejemplo)
@@ -261,10 +275,9 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
       alignment: AlignmentType.CENTER,
     });
 
-
     const doc = new Document({
       creator: "SIGUNE",
-      title: `Notas ${getDateMx()}`,
+      title: `RESUMEN SEMANAL DEL ${lastDay.toUpperCase()} al ${fDayParsed.toUpperCase()}`,
       description: "Exportación de contenidos",
       sections: [
         {
@@ -273,16 +286,17 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
               children: [imageParagraph],
             }),
           },
-          children: [title, ...contentParagraphs, signatureLine, signatureName, signaturePosition],
+          children: [title, ...allContent, signatureLine, signatureName, signaturePosition],
         },
       ],
     })
 
-    message.success('Guión exportado correctamente');
+    message.success('Guiones exportados correctamente')
 
     const blob = await Packer.toBlob(doc)
-    saveAs(blob, "GUION_NOTICIAS.docx")
+    saveAs(blob, `RESUMEN SEMANAL DEL ${lastDay.toUpperCase()} al ${fDayParsed.toUpperCase()}.docx`)
   }
+
 
   const handleExport = async () => {
     const selectedItems = dataSource.filter(item => selectedRowKeys.includes(item.key));
@@ -323,4 +337,4 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
   )
 }
 
-export default ListResumen;
+export default ListResumenSemanal;

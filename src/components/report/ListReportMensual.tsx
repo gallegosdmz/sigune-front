@@ -10,7 +10,7 @@ import { saveAs } from "file-saver"
 
 (pdfMake as any).vfs = pdfFonts.vfs;
 
-const ListReports: React.FC = () => {
+const ListReportsMensual: React.FC = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [period, setPeriod] = useState<number | null>(null);
 
@@ -31,18 +31,50 @@ const ListReports: React.FC = () => {
         switch (id) {
             case 1:
                 startDate = new Date(`${period}-01-01`);
-                endDate = new Date(`${period}-03-31`);
+                endDate = new Date(`${period}-01-31`);
                 break;
             case 2:
-                startDate = new Date(`${period}-04-01`);
-                endDate = new Date(`${period}-06-30`);
+                startDate = new Date(`${period}-02-01`);
+                endDate = new Date(`${period}-02-28`);
                 break;
             case 3:
-                startDate = new Date(`${period}-07-01`);
-                endDate = new Date(`${period}-09-30`);
+                startDate = new Date(`${period}-03-01`);
+                endDate = new Date(`${period}-03-31`);
                 break;
             case 4:
+                startDate = new Date(`${period}-04-01`);
+                endDate = new Date(`${period}-04-30`);
+                break;
+            case 5:
+                startDate = new Date(`${period}-05-01`);
+                endDate = new Date(`${period}-05-31`);
+                break;
+            case 6:
+                startDate = new Date(`${period}-06-01`);
+                endDate = new Date(`${period}-06-30`);
+                break;
+            case 7:
+                startDate = new Date(`${period}-07-01`);
+                endDate = new Date(`${period}-07-31`);
+                break;
+            case 8:
+                startDate = new Date(`${period}-08-01`);
+                endDate = new Date(`${period}-08-31`);
+                break;
+            case 9:
+                startDate = new Date(`${period}-09-01`);
+                endDate = new Date(`${period}-09-30`);
+                break;
+            case 10:
                 startDate = new Date(`${period}-10-01`);
+                endDate = new Date(`${period}-10-31`);
+                break;
+            case 11:
+                startDate = new Date(`${period}-11-01`);
+                endDate = new Date(`${period}-11-30`);
+                break;
+            case 12:
+                startDate = new Date(`${period}-12-01`);
                 endDate = new Date(`${period}-12-31`);
                 break;
             default:
@@ -235,7 +267,7 @@ const ListReports: React.FC = () => {
 
         const doc = new Document({
             creator: "SIGUNE",
-            title: "Reporte Trimestral",
+            title: "Reporte Mensual",
             sections: [
                 {
                     properties: {
@@ -256,7 +288,7 @@ const ListReports: React.FC = () => {
         });
 
         const blob = await Packer.toBlob(doc);
-        saveAs(blob, "REPORTE_TRIMESTRAL.docx");
+        saveAs(blob, "REPORTE_MENSUAL.docx");
         message.success(`Exportados ${report.propios + report.coproducidos} elementos.`);
     };
 
@@ -285,26 +317,58 @@ const ListReports: React.FC = () => {
     const dataSource = [
         {
             id: 1,
-            period: 'Primer Trimestre'
+            period: 'Enero'
         },
         {
             id: 2,
-            period: 'Segundo Trimestre'
+            period: 'Febrero'
         },
         {
             id: 3,
-            period: 'Tercer Trimestre'
+            period: 'Marzo'
         },
         {
             id: 4,
-            period: 'Cuarto Trimestre'
+            period: 'Abril'
+        },
+        {
+            id: 5,
+            period: 'Mayo'
+        },
+        {
+            id: 6,
+            period: 'Junio'
+        },
+        {
+            id: 7,
+            period: 'Julio'
+        },
+        {
+            id: 8,
+            period: 'Agosto'
+        },
+        {
+            id: 9,
+            period: 'Septiembre'
+        },
+        {
+            id: 10,
+            period: 'Octubre'
+        },
+        {
+            id: 11,
+            period: 'Noviembre'
+        },
+        {
+            id: 12,
+            period: 'Diciembre'
         },
     ];
 
 
     return (
         <Card
-            title="Lista de Periodos"
+            title="Lista de Meses"
             extra={
                 <Dropdown
                     menu={{ items }}
@@ -333,11 +397,9 @@ const ListReports: React.FC = () => {
                 <Table columns={columns} dataSource={dataSource} rowKey="id" />
             ) : (
                 <></>
-                // HACER VISTA PARA GENERAR REPORTES MENSUALES
-
             )}
         </Card>
     );
 }
 
-export default ListReports;
+export default ListReportsMensual;

@@ -1,3 +1,4 @@
+import { Content } from "./Content";
 import { User } from "./User";
 
 export interface Script {
@@ -7,4 +8,5 @@ export interface Script {
     dateEmission: Date;
     farewell: string;
     status: boolean;
+    contents?: Content[] | null;
 }

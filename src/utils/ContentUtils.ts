@@ -2,6 +2,7 @@ import { FormInstance, message } from "antd";
 import { Content } from "../interfaces/Content";
 import { changePositionContent, createContent, createFileAudio, deleteContent, getContentsApprovedForScript, getContentsDisapprovedForScript, getContentsForScript, getContentsForUser, getFileAudio, updateContent } from "../services/ApiCalls";
 import { handleErrorServer } from "./Custom/CustomErrors";
+import axios from "axios";
 
 export const handleSetContentsWithScript = async(
     idScript: number,
@@ -79,6 +80,7 @@ export const handleModalView = async(
     setFile: ( file: any ) => void,
     setModalView: ( modalView: boolean ) => void,
 ) => {
+    console.log(content);
     setContent( content );
 
     // Buscar audio
@@ -120,8 +122,11 @@ export const handleEditSave = async(
     editForm: FormInstance,
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     script: number | null,
-    setVisibleViewContent: ( visibleViewContent: boolean ) => void
+    setVisibleViewContent: ( visibleViewContent: boolean ) => void,
+    setLoading: (loading: boolean) => void,
 ) => {
+    setLoading(true); // Activamos el estado de loading
+
     const today = new Date();
     const createdAt = new Date(record.createdAt!);
 
@@ -130,7 +135,7 @@ export const handleEditSave = async(
         createdAt.getMonth() !== today.getMonth() ||
         createdAt.getDate() !== today.getDate();
     
-    if (!isDifferentDay) {
+    if (!isDifferentDay && localStorage.getItem('typeUser') === 'reportero_user') {
         editForm.resetFields();
         setVisibleViewContent( false );
 
@@ -151,6 +156,7 @@ export const handleEditSave = async(
         }
         setContents( contents );
 
+        setLoading(false); 
         message.success('Contenido editado correctamente');
 
         editForm.resetFields();
@@ -158,6 +164,7 @@ export const handleEditSave = async(
 
 
     } catch ( error ) {
+        console.log(error)
         handleErrorServer( error );
     }
 }
@@ -243,13 +250,17 @@ export const handleAddSave = async(
 
         const values = await addForm.validateFields();
 
-        if (!values.dependence) {
+        console.log(values);
+
+        if (!values.textContent) {
             await createContent({
                 type: 'Sección',
                 title: values.title,
+                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación',
                 textContent: 'Sn',
                 dependence: 'Sn',
                 classification: 'Sn',
+                url: 'Sin Audio',
                 status: true,
                 script: script,
             });
@@ -263,11 +274,11 @@ export const handleAddSave = async(
             return message.success('Contenido agregado exitosamente');
         }
 
-        const { audioFile, ...valueDetails } = values;
+        const { mediaFile, ...valueDetails } = values;
 
         
 
-        const fileObj = audioFile?.[0]?.originFileObj;
+        const fileObj = mediaFile?.[0]?.originFileObj;
 
         const type = 'textContent' in values ? 'Nota' : 'Sección';
 
@@ -278,6 +289,8 @@ export const handleAddSave = async(
             const resAudio = await createFileAudio( fileObj );
             fileId = resAudio.fileId;
         }
+
+        if (!valueDetails.classification) valueDetails.classification = 'Contenido General';
 
         await createContent({ script, type, url: fileId, ...valueDetails });
 
@@ -299,7 +312,7 @@ export const handleAddSave = async(
         
 
     } catch ( error ) {
-        
+        console.log(error);
         setLoading(false);
         handleErrorServer( error );
     }
@@ -325,4 +338,37 @@ export const handleDelete = async(
     } catch ( error ) {
         handleErrorServer( error );
     }
+}
+
+// Handles - Verificación de Texto
+export const checkSpelling = async(
+    textToCheck: string,
+    setErrors: (errors: any[]) => void,
+) => {
+    if (!textToCheck.trim()) {
+        setErrors([]);
+        return;
+    }
+
+
+    try {
+        const response = await axios.post(
+            'https://api.languagetool.org/v2/check',
+            new URLSearchParams({
+                text: textToCheck,
+                language: 'es'
+            }),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }
+        );
+        setErrors(response.data.matches || []);
+
+
+    } catch (error) {
+        handleErrorServer(error);
+    } 
+
 }

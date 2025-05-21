@@ -4,10 +4,11 @@ import type React from "react"
 import { Button, Modal, Form, Input, Space, message, Upload, Spin, Select } from "antd"
 import type { Content } from "../../interfaces/Content"
 import * as ContentUtils from "../../utils/ContentUtils"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import ReactQuill from "react-quill"
 import "react-quill/dist/quill.snow.css"
 import { InboxOutlined } from "@ant-design/icons"
+import debounce from 'lodash.debounce';
 
 type Props = {
   script: number | null
@@ -29,7 +30,16 @@ const CreateContent: React.FC<Props> = ({
   const [addForm] = Form.useForm()
   const [editorContent, setEditorContent] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false) // Estado de loading
+  const [errors, setErrors] = useState<any[]>([]);
+  const classification = Form.useWatch('classification', addForm);
 
+  // Debounce: Espera 500ms después de que el usuario deja de escribir
+  const debouncedCheck = useCallback(
+    debounce((textToCheck: string) => {
+      ContentUtils.checkSpelling(textToCheck, setErrors);
+    }, 500),
+    []
+  );
 
   // Reset form when modal closes
   useEffect(() => {
@@ -39,6 +49,12 @@ const CreateContent: React.FC<Props> = ({
     }
   }, [visibleAddNote, visibleAddSection, addForm])
 
+  useEffect(() => {
+    debouncedCheck(editorContent);
+    // Limpia el debounce al desmontar el componente
+    return () => debouncedCheck.cancel();
+  }, [editorContent, debouncedCheck]);
+
   const handleSave = () => {
     if (visibleAddNote) {
       ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddNote, setLoading)
@@ -46,6 +62,12 @@ const CreateContent: React.FC<Props> = ({
       ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddSection, setLoading)
     }
   }
+
+  const stripHtml = (html: string): string => {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || "";
+  };
 
   // Quill editor modules and formats configuration
   const modules = {
@@ -85,107 +107,160 @@ const CreateContent: React.FC<Props> = ({
         width={800}
         style={{ padding: '20px' }}
       >
+        {errors.length > 0 && (
+          <div style={{ marginTop: '20px', color: '#d32f2f' }}>
+            <h3>Errores encontrados:</h3>
+            <ul style={{ listStyle: 'none', padding: 0 }}>
+              {errors.map((error, index) => (
+                <li key={index} style={{ marginBottom: '10px' }}>
+                  <strong>{error.message}</strong>
+                  <br />
+                  <span style={{ background: '#ffebee', padding: '2px 4px' }}>
+                    {stripHtml(error.context?.text)}
+                  </span>
+                  <br />
+                  {error.replacements?.length > 0 && (
+                    <span>
+                      <em>Sugerencias: </em>
+                      {error.replacements.map((r: any, i: number) => (
+                        <span key={i} style={{ marginRight: '5px', color: '#1976d2' }}>
+                          {r.value}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <Spin spinning={loading}> {/* Mostrar el Spinner mientras loading es true */}
-                  <Form form={addForm} layout="vertical">
-                      <Form.Item
-                          name="title"
-                          label="Titulo"
-                          rules={[{ required: true, message: "Ingresa el titulo" }]}
-                      >
-                          <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
-                      </Form.Item>
+          <Form form={addForm} layout="vertical">
+            <Form.Item
+              name="title"
+              label="Titulo"
+              rules={[{ required: true, message: "Ingresa el titulo" }]}
+            >
+              <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
+            </Form.Item>
 
-                      <Form.Item
-                          label="Contenido"
-                          name="textContent"
-                          rules={[{ required: true, message: "El contenido es requerido" }]}
-                          getValueFromEvent={(e) => e}
-                      >
-                          <ReactQuill
-                              theme="snow"
-                              value={editorContent}
-                              onChange={setEditorContent}
-                              modules={modules}
-                              formats={formats}
-                              style={{
-                                  height: 300,
-                                  marginBottom: 5,
-                                  borderRadius: 4,
-                                  border: "1px solid #d9d9d9",
-                                  overflow: "hidden",
-                                  marginTop: '10px'
-                              }}
-                              className="custom-quill"
-                          />
-                      </Form.Item>
+            <Form.Item
+              name="head"
+              label="Cabecera"
+              rules={[
+                { required: true, message: "Ingresa la cabecera" },
+                {
+                  validator: (_, value) => {
+                    if (!value || value.length >= 50) {
+                      return Promise.resolve();
+                    }
+                    return Promise.reject(new Error("La cabecera debe tener al menos 50 caracteres"));
+                  },
+                },
+              ]}
+              validateTrigger={['onChange', 'onBlur']}
+            >
+              <Input placeholder="Cabecera" style={{ borderRadius: '4px' }} />
+            </Form.Item>
 
-                      <Form.Item
-                          name="dependence"
-                          label="Dependencia"
-                          rules={[{ required: true, message: "Ingresa la dependencia gubernamental" }]}
-                      >
-                          <Select placeholder="Selecciona una dependencia">
-                            <Select.Option value={"Secretaria de Salud"}>Secretaria de Salud</Select.Option>
-                            <Select.Option value={"Secreatria de Educación"}>Secreatria de Educación</Select.Option>
-                          </Select>
-                      </Form.Item>
+            <Form.Item
+              label="Contenido"
+              name="textContent"
+              rules={[{ required: true, message: "El contenido es requerido" }]}
+              getValueFromEvent={(e) => e}
+            >
+              <ReactQuill
+                theme="snow"
+                value={editorContent}
+                onChange={setEditorContent}
+                modules={modules}
+                formats={formats}
+                style={{
+                  height: 300,
+                  marginBottom: 5,
+                  borderRadius: 4,
+                  border: "1px solid #d9d9d9",
+                  overflow: "hidden",
+                  marginTop: '10px'
+                }}
+                className="custom-quill"
+              />
+            </Form.Item>
 
-                      <Form.Item
-                          name="classification"
-                          label="Clasificación"
-                          initialValue="Contenido General"
-                          rules={[{ required: true, message: "Ingresa la clasificación" }]}
-                      >
-                          <Select placeholder="Selecciona una clasificación">
-                            <Select.Option value={"Contenido General"}>Contenido General</Select.Option>
-                            <Select.Option value={"Boletín"}>Boletín</Select.Option>
-                            <Select.Option value={"Editoriales"}>Editoriales</Select.Option>
-                            <Select.Option value={"Menciones"}>Menciones</Select.Option>
-                          </Select>
-                      </Form.Item>
+            {localStorage.getItem('typeUser') === 'admin_user' ? (
+              <Form.Item
+                name="classification"
+                label="Clasificación"
+                initialValue="Contenido General"
+                rules={[{ required: true, message: "Ingresa la clasificación" }]}
+              >
+                <Select placeholder="Selecciona una clasificación">
+                  <Select.Option value="Contenido General">Contenido General</Select.Option>
+                  <Select.Option value="Boletín">Boletín</Select.Option>
+                  <Select.Option value="Editoriales">Editoriales</Select.Option>
+                  <Select.Option value="Menciones">Menciones</Select.Option>
+                </Select>
+              </Form.Item>
+            ) : (
+              <></>
+            )}
 
-                      <Form.Item
-                          label="Archivo de audio"
-                          name="audioFile"
-                          valuePropName="fileList"
-                          getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
-                      >
-                          <Upload.Dragger
-                              name="file"
-                              multiple={false}
-                              accept=".mp3,.wav"
-                              beforeUpload={(file) => {
-                                  const isAudio = file.type.includes("audio");
+            {["Boletín", "Editoriales", "Menciones"].includes(classification) && (
+              <Form.Item
+                name="dependence"
+                label="Dependencia"
+                rules={[{ required: true, message: "Selecciona una dependencia" }]}
+              >
+                <Select placeholder="Selecciona una dependencia">
+                  <Select.Option value="Secretaria de Salud">Secretaria de Salud</Select.Option>
+                  <Select.Option value="Secreatria de Educación">Secreatria de Educación</Select.Option>
+                </Select>
+              </Form.Item>
+            )}
 
-                                  if (!isAudio) {
-                                      message.error("Solo se permiten archivos de audio (.mp3 o .wav)");
-                                      return Upload.LIST_IGNORE;
-                                  }
+            <Form.Item
+              label="Archivo multimedia"
+              name="mediaFile"
+              valuePropName="fileList"
+              getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
+            >
+              <Upload.Dragger
+                name="file"
+                multiple={false}
+                accept=".mp3,.wav,.ogg,.mp4,.mov,.avi,.mkv"
+                beforeUpload={(file) => {
+                  const isAudioOrVideo = file.type.includes("audio") || file.type.includes("video");
 
-                                  return false; // Evita la subida automática
-                              }}
-                              showUploadList={{ showRemoveIcon: true }}
-                              style={{ marginTop: '20px' }}
-                          >
-                              <p className="ant-upload-drag-icon">
-                                  <InboxOutlined />
-                              </p>
-                              <p className="ant-upload-text">Haz clic o arrastra un archivo de audio</p>
-                              <p className="ant-upload-hint">Solo archivos .mp3 o .wav menores a 10MB</p>
-                          </Upload.Dragger>
-                      </Form.Item>
+                  if (!isAudioOrVideo) {
+                    message.error("Solo se permiten archivos de audio o video (.mp3, .wav, .mp4, etc.)");
+                    return Upload.LIST_IGNORE;
+                  }
 
-                      <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-                          <Space>
-                              <Button type="primary" onClick={handleSave}>
-                                  Guardar
-                              </Button>
-                          </Space>
-                      </div>
-                  </Form>
-              </Spin>
-          </Modal>
-  
+                  return false; // Evita la subida automática
+                }}
+                showUploadList={{ showRemoveIcon: true }}
+                style={{ marginTop: '20px' }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <InboxOutlined />
+                </p>
+                <p className="ant-upload-text">Haz clic o arrastra un archivo de audio o video</p>
+                <p className="ant-upload-hint">Se permiten archivos .mp3, .wav, .mp4, .mov, etc. menores a 10MB</p>
+              </Upload.Dragger>
+            </Form.Item>
+
+
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Space>
+                <Button type="primary" onClick={handleSave}>
+                  Guardar
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        </Spin>
+      </Modal>
+
       <Modal
         title={<div style={{ textAlign: "left" }}>{visibleAddNote ? "Agregar Nota" : "Agregar Sección"}</div>}
         open={visibleAddSection}
@@ -203,7 +278,7 @@ const CreateContent: React.FC<Props> = ({
           >
             <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
           </Form.Item>
-  
+
           <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
             <Space>
               <Button type="primary" onClick={handleSave}>
@@ -215,7 +290,7 @@ const CreateContent: React.FC<Props> = ({
       </Modal>
     </>
   );
-  
+
 }
 
 export default CreateContent
