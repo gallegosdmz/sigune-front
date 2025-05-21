@@ -5,8 +5,9 @@ import { useState } from "react";
 import { getReport } from "../../services/ApiCalls";
 import pdfMake from "pdfmake/build/pdfmake";
 import * as pdfFonts from "pdfmake/build/vfs_fonts";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType, Header, TableRow, TableCell, Table as TableWORD } from "docx"
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType, Header, TableRow, TableCell, Table as TableWORD, WidthType, VerticalAlign } from "docx"
 import { saveAs } from "file-saver"
+import { Content } from "pdfmake/interfaces";
 
 (pdfMake as any).vfs = pdfFonts.vfs;
 
@@ -49,6 +50,9 @@ const ListReports: React.FC = () => {
                 throw new Error("ID de trimestre no válido.");
         }
 
+        console.log(startDate);
+        console.log(endDate);
+
         const report = await getReport(startDate, endDate);
         console.log(report);
 
@@ -75,14 +79,24 @@ const ListReports: React.FC = () => {
         return await blob.arrayBuffer()
     }
 
-    const exportToWord = async (report: {
-        total: number;
-        propios: number;
-        coproducidos: number;
-        byDependence: any[];
-        byClassification: any[];
-    }) => {
+    type CoProducidos = {
+        contents: Content[],
+        count: number,
+    }
 
+    type Producidos = {
+        contents: Content[],
+        count: number,
+    }
+
+    const exportToWord = async (report: {
+        byClassification: any[];
+        byDependence: any[];
+        coproducidos: CoProducidos;
+        propios: Producidos;
+        months: { month: string; count: number }[];
+        total: number;
+    }) => {
         const logoBuffer = await getLogoBuffer();
 
         const image = new ImageRun({
@@ -103,17 +117,9 @@ const ListReports: React.FC = () => {
         const title = new Paragraph({
             children: [
                 new TextRun({
-                    text: "RESPALDO INFORMATIVO",
+                    text: "CONTEO DE CONTENIDO DE NOTICIAS",
                     bold: true,
                     size: 28,
-                    font: "Arial",
-                    color: "000000",
-                }),
-                new TextRun({
-                    text: getDateMx().toUpperCase(),
-                    break: 1,
-                    bold: true,
-                    size: 26,
                     font: "Arial",
                     color: "000000",
                 }),
@@ -123,80 +129,122 @@ const ListReports: React.FC = () => {
             spacing: { after: 300 },
         });
 
-        const buildCellContent = (items: any[] | number | undefined | null) => {
-            if (typeof items === "number") {
-                return [
-                    new Paragraph({
-                        children: [
-                            new TextRun({
-                                text: items.toString(),
-                                font: "Arial",
-                                size: 28,      // tamaño más grande
-                                bold: true,    // negrita
-                            }),
-                        ],
-                        alignment: AlignmentType.CENTER,  // centrar texto
-                        spacing: { after: 100 },
-                    }),
-                ];
-            }
-
-            if (!Array.isArray(items) || items.length === 0) {
-                return [
-                    new Paragraph({
-                        text: "",
-                        alignment: AlignmentType.CENTER,
-                    }),
-                ];
-            }
-
-            return items.map(item => {
-                return new Paragraph({
+        // Cabecera de la tabla
+        const tableHeader = new TableRow({
+            children: ["MES", "CONTENIDOS TRANSMITIDOS"].map(text =>
+                new TableCell({
+                    shading: {
+                        fill: "D99594", // <- Color hexadecimal sin el símbolo #
+                    },
                     children: [
-                        new TextRun({
-                            text: item,
-                            font: "Arial",
-                            size: 28,      // tamaño más grande
-                            bold: true,    // negrita
-                        }),
-                    ],
-                    alignment: AlignmentType.CENTER,  // centrar texto
-                    spacing: { after: 100 },
-                });
-            });
-        };
-
-        const table = new TableWORD({
-            width: { size: 100, type: "pct" },
-            rows: [
-                new TableRow({
-                    children: ["Contenidos Propios", "Contenidos Coproducidos", "Contenidos Externos"].map(text =>
-                        new TableCell({
+                        new Paragraph({
                             children: [
-                                new Paragraph({
-                                    children: [
-                                        new TextRun({
-                                            text,
-                                            bold: true,
-                                            font: "Arial",
-                                            size: 26,
-                                        }),
-                                    ],
-                                    alignment: AlignmentType.CENTER,
+                                new TextRun({
+                                    text,
+                                    bold: true,
+                                    font: "Arial",
+                                    size: 26,
                                 }),
                             ],
-                            verticalAlign: "center",
-                        })
-                    ),
+                            alignment: AlignmentType.CENTER,
+                        }),
+                    ],
+                    verticalAlign: "center",
+                })
+            ),
+        });
+
+        // Filas de la tabla con los datos de los meses
+        const monthRows = report.months.map(({ month, count }) =>
+            new TableRow({
+                children: [
+                    new TableCell({
+                        width: { size: 30, type: WidthType.PERCENTAGE },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: month,
+                                        font: "Arial",
+                                        size: 26,
+                                    }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                            }),
+                        ],
+                        verticalAlign: "center",
+                    }),
+                    new TableCell({
+                        width: { size: 30, type: WidthType.PERCENTAGE },
+                        children: [
+                            new Paragraph({
+                                children: [
+                                    new TextRun({
+                                        text: count.toString(),
+                                        font: "Arial",
+                                        size: 26,
+                                        bold: true,
+                                    }),
+                                ],
+                                alignment: AlignmentType.CENTER,
+                            }),
+                        ],
+                        verticalAlign: "center",
+                    }),
+                ],
+            })
+        );
+
+        const totalRow = new TableRow({
+            children: [
+                new TableCell({
+                    width: { size: 30, type: WidthType.PERCENTAGE },
+                    shading: {
+                        fill: "f2dbdb", // gris claro para distinguir el total
+                    },
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: "TOTAL",
+                                    bold: true,
+                                    font: "Arial",
+                                    size: 26,
+                                }),
+                            ],
+                            alignment: AlignmentType.CENTER,
+                        }),
+                    ],
+                    verticalAlign: VerticalAlign.CENTER,
                 }),
-                new TableRow({
-                    children: [report.propios, report.coproducidos, []].map(items =>
-                        new TableCell({
-                            children: buildCellContent(items),
-                        })
-                    ),
+                new TableCell({
+                    width: { size: 30, type: WidthType.PERCENTAGE },
+                    shading: {
+                        fill: "f2dbdb",
+                    },
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun({
+                                    text: report.total.toString(),
+                                    bold: true,
+                                    font: "Arial",
+                                    size: 26,
+                                }),
+                            ],
+                            alignment: AlignmentType.CENTER,
+                        }),
+                    ],
+                    verticalAlign: VerticalAlign.CENTER,
                 }),
             ],
+        })
+
+
+        const firstTable = new TableWORD({
+            width: { size: 60, type: "pct" },
+            alignment: AlignmentType.CENTER, // centrada
+            rows: [tableHeader, ...monthRows, totalRow],
         });
 
         const signatureLine = new Paragraph({
@@ -250,15 +298,16 @@ const ListReports: React.FC = () => {
                             children: [imageParagraph],
                         }),
                     },
-                    children: [title, table, signatureLine, signatureName, signaturePosition],
+                    children: [title, firstTable, signatureLine, signatureName, signaturePosition],
                 },
             ],
         });
 
         const blob = await Packer.toBlob(doc);
         saveAs(blob, "REPORTE_TRIMESTRAL.docx");
-        message.success(`Exportados ${report.propios + report.coproducidos} elementos.`);
+        message.success(`Exportados ${report.propios.count + report.coproducidos.count} elementos.`);
     };
+
 
 
     const columns = [
