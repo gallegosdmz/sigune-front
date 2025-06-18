@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { BookOutlined, FileOutlined, ScanOutlined, UserOutlined } from "@ant-design/icons"
+import { BookOutlined, FileOutlined, HomeOutlined, ScanOutlined, UserOutlined } from "@ant-design/icons"
 import type { MenuProps } from "antd"
 import { Layout, Menu, Typography } from "antd"
 import { useLocation, useNavigate } from "react-router-dom"
@@ -51,13 +51,14 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
 
   let items: MenuProps["items"] = []
 
-  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-reporteros", "/panel-newsletters", "/panel-reports", "/panel-respaldo", "/panel-reports-mensuales"]
+  const allowedRoutes = ["/panel-guion", "/panel-rh", "/panel-reporteros", "/panel-newsletters", "/panel-reports", "/panel-respaldo", "/panel-reports-mensuales", "/panel-contents", "/resumenes-semanales", "/resumen-semanal", "/resumen-diario"]
 
   const showSideNav = allowedRoutes.some((route) => location.pathname.startsWith(route))
   if (!showSideNav) return null
 
   if (localStorage.getItem("typeUser") === "admin_user") {
     items = [
+      getItem("Notas", "/panel-contents", <HomeOutlined />),
       getItem("Guiones", "/panel-guion", <BookOutlined />),
       getItem("Boletines", "boletines", <FileOutlined />, [
         getItem("Listar Boletines", "/panel-newsletters"),

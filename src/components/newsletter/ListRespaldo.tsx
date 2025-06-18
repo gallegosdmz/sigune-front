@@ -5,9 +5,9 @@ import { DatabaseOutlined, DownOutlined } from "@ant-design/icons";
 import * as NewsLetterUtils from '../../utils/NewsLetterUtils'
 import { css } from "@emotion/css";
 import ListNewsLetter from "./ListNewsLetter";
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType, Header, TableRow, TableCell, Table as TableWORD } from "docx"
 import { saveAs } from "file-saver"
 import { Content } from "../../interfaces/Content";
+import ExcelJS from "exceljs";
 
 
 const { Search } = SearchInput;
@@ -104,166 +104,141 @@ const ListRespaldo: React.FC = () => {
     }
 
 
-    const exportToWord = async () => {
-        const logoBuffer = await getLogoBuffer();
+    const exportToExcel = async () => {
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Respaldo Informativo");
 
-        const image = new ImageRun({
-            data: logoBuffer,
-            transformation: {
-                width: 500,
-                height: 60,
+        // Establecer configuración de página para impresión
+        worksheet.pageSetup = {
+            orientation: "landscape",
+            horizontalCentered: true,
+            verticalCentered: false,
+            fitToPage: true,
+            fitToWidth: 1,
+            fitToHeight: 0,
+            margins: {
+                left: 0.5,
+                right: 0.5,
+                top: 0.75,
+                bottom: 0.75,
+                header: 0.3,
+                footer: 0.3,
             },
-            type: "png",
+        };
+
+        // Insertar imagen del logo
+        const logoBuffer = await getLogoBuffer(); // Función que devuelve el buffer de tu imagen
+        const imageId = workbook.addImage({
+            buffer: logoBuffer,
+            extension: "png",
         });
 
-        const imageParagraph = new Paragraph({
-            children: [image],
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 200 },
+        worksheet.mergeCells("A1:D3"); // Combina A1 a D3 para reservar espacio del logo
+        worksheet.addImage(imageId, {
+            tl: { col: 2, row: 0 },   // posición inicial (columna A, fila 1)
+            ext: { width: 500, height: 60 }, // dimensiones del logo
+            editAs: "oneCell", // evita el error de tipo
         });
 
-        const title = new Paragraph({
-            children: [
-                new TextRun({
-                    text: "RESPALDO INFORMATIVO",
-                    bold: true,
-                    size: 28,
-                    font: "Arial",
-                    color: "000000", // negro
-                }),
-            ],
-            heading: HeadingLevel.HEADING_1,
-            alignment: AlignmentType.CENTER,
-            spacing: { after: 300 },
+        // Fila vacía después del logo
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+
+        // Título
+        const titleRow = worksheet.addRow(["RESPALDO INFORMATIVO"]);
+        titleRow.height = 30;
+        titleRow.font = { bold: true, size: 16, name: "Arial" };
+        worksheet.mergeCells(`A${titleRow.number}:D${titleRow.number}`);
+        titleRow.alignment = { horizontal: "center", vertical: "middle" };
+
+        worksheet.addRow([]);
+
+        // Encabezados de la tabla
+        const headerRow = worksheet.addRow(["Mes", "Día", "Dependencia", "Nombre"]);
+        headerRow.font = { bold: true, size: 13, name: "Arial" };
+        headerRow.alignment = { horizontal: "center", vertical: "middle" };
+        headerRow.eachCell((cell) => {
+            cell.border = {
+                top: { style: "thin" },
+                bottom: { style: "thin" },
+                left: { style: "thin" },
+                right: { style: "thin" },
+            };
         });
 
+        // Contenido de la tabla
         const meses = [
             "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
         ];
 
-        const tableRows = [
-            // Header row
-            new TableRow({
-                children: ["Mes", "Dependencia", "Nombre"].map((text) =>
-                    new TableCell({
-                        children: [
-                            new Paragraph({
-                                children: [
-                                    new TextRun({
-                                        text,
-                                        bold: true,
-                                        font: "Arial",
-                                        size: 26,
-                                    }),
-                                ],
-                                alignment: AlignmentType.CENTER,
-                            }),
-                        ],
-                        verticalAlign: "center",
-                    })
-                ),
-            }),
-            // Data rows
-            ...newsLetters.map((item) => {
-                const date = new Date(item.createdAt!);
-                const mes = meses[date.getMonth()];
-                return new TableRow({
-                    children: [
-                        mes,
-                        item.dependence,
-                        item.title,
-                    ].map((text) =>
-                        new TableCell({
-                            children: [
-                                new Paragraph({
-                                    children: [
-                                        new TextRun({
-                                            text,
-                                            font: "Arial",
-                                            size: 24,
-                                        }),
-                                    ],
-                                }),
-                            ],
-                        })
-                    ),
-                });
-            }),
+        newsLetters.forEach((item) => {
+            const date = new Date(item.createdAt!);
+            const mes = meses[date.getMonth()];
+
+            const dia = date.getDate();
+            const row = worksheet.addRow([mes, dia, item.dependence, item.title]);
+            row.font = { size: 12, name: "Arial" };
+            row.alignment = { horizontal: "center", vertical: "middle", wrapText: true };
+
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: "thin" },
+                    bottom: { style: "thin" },
+                    left: { style: "thin" },
+                    right: { style: "thin" },
+                };
+            });
+        });
+
+        worksheet.columns = [
+            { key: "mes", width: 10 },
+            { key: "dia", width: 20 },
+            { key: "dependencia", width: 40 },
+            { key: "nombre", width: 60 },
         ];
 
-        const table = new TableWORD({
-            rows: tableRows,
-            width: {
-                size: 100,
-                type: "pct",
-            },
+
+        // Espacio antes de la firma
+        worksheet.addRow([]);
+        worksheet.addRow([]);
+
+        // Línea de firma centrada
+        const firmaRow1 = worksheet.addRow(["_____________________________________"]);
+        worksheet.mergeCells(`A${firmaRow1.number}:D${firmaRow1.number}`);
+        firmaRow1.getCell(1).alignment = { horizontal: "center" };
+
+        // Nombre centrado
+        const firmaRow2 = worksheet.addRow(["Lic. Martha Gabriela Yeverino Sifuentes"]);
+        worksheet.mergeCells(`A${firmaRow2.number}:D${firmaRow2.number}`);
+        firmaRow2.getCell(1).font = { name: "Arial", size: 12 };
+        firmaRow2.getCell(1).alignment = { horizontal: "center" };
+
+        // Cargo centrado
+        const firmaRow3 = worksheet.addRow(["Jefa del Departamento de Noticias"]);
+        worksheet.mergeCells(`A${firmaRow3.number}:D${firmaRow3.number}`);
+        firmaRow3.getCell(1).font = { name: "Arial", size: 12 };
+        firmaRow3.getCell(1).alignment = { horizontal: "center" };
+
+
+        // Ajustar altura de todas las filas
+        worksheet.eachRow({ includeEmpty: true }, (row) => {
+            row.height = 20;
         });
 
-        const signatureLine = new Paragraph({
-            children: [
-                new TextRun({
-                    text: "_____________________________________",
-                    font: "Arial",
-                    size: 24,
-                }),
-            ],
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 600, after: 100 },
-        });
+        // Repetir encabezados en cada página
+        const headerRowNumber = headerRow.number;
+        worksheet.views = [{ state: "frozen", ySplit: headerRowNumber }];
+        worksheet.pageSetup.printTitlesRow = `${headerRowNumber}:${headerRowNumber}`;
 
-        const signatureName = new Paragraph({
-            children: [
-                new TextRun({
-                    text: "Lic. Martha Gabriela Yeverino Sifuentes",
-                    font: "Arial",
-                    size: 24,
-                }),
-            ],
-            alignment: AlignmentType.CENTER,
-        });
-
-        const signaturePosition = new Paragraph({
-            children: [
-                new TextRun({
-                    text: "Jefa del Departamento de Noticias",
-                    font: "Arial",
-                    size: 24,
-                }),
-            ],
-            alignment: AlignmentType.CENTER,
-        });
-
-        const doc = new Document({
-            creator: "SIGUNE",
-            title: "Respaldo Informativo",
-            sections: [
-                {
-                    properties: {
-                        page: {
-                            size: {
-                                orientation: "landscape",
-                            },
-                        },
-                    },
-                    headers: {
-                        default: new Header({
-                            children: [imageParagraph],
-                        }),
-                    },
-                    children: [title, table, signatureLine, signatureName, signaturePosition],
-                },
-            ],
-        });
-
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, "RESPALDO_INFORMATIVO.docx");
-        message.success(`Exportados ${newsLetters.length} elementos.`);
+        // Guardar archivo
+        const buffer = await workbook.xlsx.writeBuffer();
+        saveAs(new Blob([buffer]), "RESPALDO_INFORMATIVO.xlsx");
     };
 
 
     const handleExport = async () => {
-        exportToWord();
+        exportToExcel();
 
         message.success(`Exportados ${newsLetters.length} elementos.`);
     };

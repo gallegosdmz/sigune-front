@@ -1,37 +1,34 @@
-"use client"
-
 import type React from "react"
-import { Button, Modal, Form, Input, Space, message, Upload, Spin, Select } from "antd"
+
+import { Button, Modal, Form, Input, Space, Popconfirm, Upload, message, Select, Spin } from "antd"
 import type { Content } from "../../interfaces/Content"
 import * as ContentUtils from "../../utils/ContentUtils"
-import { useState, useEffect, useCallback } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import ReactQuill from "react-quill"
-import "react-quill/dist/quill.snow.css"
-import { InboxOutlined } from "@ant-design/icons"
-import debounce from 'lodash.debounce';
+import { InboxOutlined, PlayCircleOutlined } from "@ant-design/icons"
+import debounce from "lodash.debounce"
 
 type Props = {
-  script: number | null
-  setContents: (content: (prevContent: Content[]) => Content[]) => void
-  setVisibleAddNote: (visibleAddNote: boolean) => void
-  setVisibleAddSection: (visibleAddSection: boolean) => void
-  visibleAddNote: boolean
-  visibleAddSection: boolean
+  content: Content | null,
+  script: number | null,
+  file: any | null,
+  setFile: (file: any) => void,
+  setContents: (content: (prevContent: Content[]) => Content[]) => void,
+  setVisibleViewNote: (visibleViewNote: boolean) => void,
+  setVisibleViewSection: (visibleViewSection: boolean) => void,
+  visibleViewNote: boolean,
+  visibleViewSection: boolean
 }
 
-const CreateContent: React.FC<Props> = ({
-  script,
-  setContents,
-  setVisibleAddNote,
-  setVisibleAddSection,
-  visibleAddNote,
-  visibleAddSection,
-}) => {
-  const [addForm] = Form.useForm()
+const EditContent: React.FC<Props> = ({ content, script, file, setFile, setContents, setVisibleViewNote, setVisibleViewSection, visibleViewNote, visibleViewSection }) => {
+  const quillRef = useRef<ReactQuill | null>(null);
+
+  const [editForm] = Form.useForm();
   const [editorContent, setEditorContent] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false) // Estado de loading
   const [errors, setErrors] = useState<any[]>([]);
-  const classification = Form.useWatch('classification', addForm);
+  const classification = Form.useWatch('classification', editForm);
+
 
   // Debounce: Espera 500ms después de que el usuario deja de escribir
   const debouncedCheck = useCallback(
@@ -41,13 +38,46 @@ const CreateContent: React.FC<Props> = ({
     []
   );
 
-  // Reset form when modal closes
+  // 1. Efecto para setear datos del formulario
   useEffect(() => {
-    if (!visibleAddNote && !visibleAddSection) {
-      addForm.resetFields()
-      setEditorContent("")
+    if (content) {
+      editForm.setFieldsValue({
+        title: content.title,
+        head: content.head,
+        textContent: content.textContent,
+        dependence: content.dependence,
+        classification: content.classification
+      });
+      setEditorContent(content.textContent); // Esto también es importante
     }
-  }, [visibleAddNote, visibleAddSection, addForm])
+  }, [content, editForm]);
+
+  // 2. Efecto separado para bloquear selección/copiar
+  useEffect(() => {
+    if (!visibleViewNote || !quillRef.current) return;
+
+    const timeout = setTimeout(() => {
+      const editor = quillRef.current?.getEditor?.();
+      const editorDiv = editor?.root;
+
+      if (editorDiv) {
+        editorDiv.style.userSelect = "none";
+
+        const handleCopy = (e: ClipboardEvent) => e.preventDefault();
+        const handleContextMenu = (e: MouseEvent) => e.preventDefault();
+
+        editorDiv.addEventListener("copy", handleCopy);
+        editorDiv.addEventListener("contextmenu", handleContextMenu);
+
+        return () => {
+          editorDiv.removeEventListener("copy", handleCopy);
+          editorDiv.removeEventListener("contextmenu", handleContextMenu);
+        };
+      }
+    }, 100); // esperar un poco a que el editor se renderice
+
+    return () => clearTimeout(timeout);
+  }, [visibleViewNote]);
 
   useEffect(() => {
     debouncedCheck(editorContent);
@@ -56,10 +86,24 @@ const CreateContent: React.FC<Props> = ({
   }, [editorContent, debouncedCheck]);
 
   const handleSave = () => {
-    if (visibleAddNote) {
-      ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddNote, setLoading)
+    if (visibleViewNote) {
+      ContentUtils.handleEditSaveForContentsPanel(
+        content!,
+        editForm,
+        setContents,
+        script!,
+        setVisibleViewNote,
+        setLoading
+      )
     } else {
-      ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddSection, setLoading)
+      ContentUtils.handleEditSaveForContentsPanel(
+        content!,
+        editForm,
+        setContents,
+        script!,
+        setVisibleViewSection,
+        setLoading
+      )
     }
   }
 
@@ -98,10 +142,11 @@ const CreateContent: React.FC<Props> = ({
 
   return (
     <>
+
       <Modal
-        title={<div style={{ textAlign: "left" }}>{visibleAddNote ? "Agregar Nota" : "Agregar Sección"}</div>}
-        open={visibleAddNote}
-        onCancel={() => ContentUtils.handleAddCancel(setVisibleAddNote)}
+        title="Editar Nota"
+        open={visibleViewNote}
+        onCancel={() => ContentUtils.handleEditCancel(setVisibleViewNote, setFile)}
         footer={null}
         centered
         width={800}
@@ -134,14 +179,14 @@ const CreateContent: React.FC<Props> = ({
             </ul>
           </div>
         )}
-        <Spin spinning={loading}> {/* Mostrar el Spinner mientras loading es true */}
-          <Form form={addForm} layout="vertical">
+        <Spin spinning={loading}>
+          <Form form={editForm} layout="vertical">
             <Form.Item
               name="title"
-              label="Titulo"
-              rules={[{ required: true, message: "Ingresa el titulo" }]}
+              label="Título"
+              rules={[{ required: true, message: "Ingresa el título" }]}
             >
-              <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
+              <Input placeholder="Título" style={{ borderRadius: '4px' }} />
             </Form.Item>
 
             <Form.Item
@@ -172,6 +217,7 @@ const CreateContent: React.FC<Props> = ({
               <ReactQuill
                 theme="snow"
                 value={editorContent}
+                ref={quillRef}
                 onChange={setEditorContent}
                 modules={modules}
                 formats={formats}
@@ -181,7 +227,7 @@ const CreateContent: React.FC<Props> = ({
                   borderRadius: 4,
                   border: "1px solid #d9d9d9",
                   overflow: "hidden",
-                  marginTop: '10px'
+                  marginTop: '10px',
                 }}
                 className="custom-quill"
               />
@@ -219,7 +265,7 @@ const CreateContent: React.FC<Props> = ({
             )}
 
             <Form.Item
-              label="Archivo multimedia"
+              label="Archivo de audio"
               name="mediaFile"
               valuePropName="fileList"
               getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
@@ -247,12 +293,90 @@ const CreateContent: React.FC<Props> = ({
                 <p className="ant-upload-text">Haz clic o arrastra un archivo de audio o video</p>
                 <p className="ant-upload-hint">Se permiten archivos .mp3, .wav, .mp4, .mov, etc. menores a 10MB</p>
               </Upload.Dragger>
-            </Form.Item>
 
+              {file?.viewLink && (
+                <div style={{ marginTop: 16 }}>
+                  <a
+                    href={file.viewLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      padding: '8px 16px',
+                      backgroundColor: '#f0f0f0',
+                      borderRadius: '6px',
+                      textDecoration: 'none',
+                      color: '#1890ff',
+                      fontWeight: 500,
+                    }}
+                  >
+                    <PlayCircleOutlined style={{ fontSize: '18px', marginRight: 8 }} />
+                    Escuchar audio en Google Drive
+                  </a>
+                </div>
+              )}
+            </Form.Item>
 
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Space>
-                <Button type="primary" onClick={handleSave}>
+                {localStorage.getItem('typeUser') === 'editor_user' ? (
+                  <></>
+                ) : (
+                  <Button
+                    type="primary"
+                    onClick={() =>
+                      handleSave()
+                    }
+                  >
+                    Guardar
+                  </Button>
+                )}
+
+                {localStorage.getItem('typeUser') === 'admin_user' ? (
+                  <Popconfirm
+                    title="¿Estás seguro de eliminar esta nota?"
+                    onConfirm={() => {
+                      ContentUtils.handleDelete(content!, script!, setContents, setVisibleViewNote);
+                    }}
+                    okText="Eliminar"
+                    okType="danger"
+                    cancelText="Cancelar"
+                  >
+                    <Button danger type="primary">
+                      Eliminar
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <></>
+                )}
+
+              </Space>
+            </div>
+          </Form>
+        </Spin>
+      </Modal>
+
+
+
+      <Modal
+        title="Editar Sección"
+        open={visibleViewSection}
+        onCancel={() => ContentUtils.handleAddCancel(setVisibleViewSection)}
+        footer={null}
+        centered
+        width={800}
+      >
+        <Spin spinning={loading}>
+          <Form form={editForm} layout="vertical">
+            <Form.Item name="title" label="Título" rules={[{ required: true, message: "Ingresa el título" }]}>
+              <Input placeholder="Título" />
+            </Form.Item>
+
+            {/* Sección de botones en el centro abajo */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Space>
+                <Button type="primary" onClick={() => handleSave()}>
                   Guardar
                 </Button>
               </Space>
@@ -260,37 +384,8 @@ const CreateContent: React.FC<Props> = ({
           </Form>
         </Spin>
       </Modal>
-
-      <Modal
-        title={<div style={{ textAlign: "left" }}>{visibleAddNote ? "Agregar Nota" : "Agregar Sección"}</div>}
-        open={visibleAddSection}
-        onCancel={() => ContentUtils.handleAddCancel(setVisibleAddSection)}
-        footer={null}
-        centered
-        width={800}
-        style={{ padding: '20px' }}
-      >
-        <Form form={addForm} layout="vertical">
-          <Form.Item
-            name="title"
-            label="Titulo"
-            rules={[{ required: true, message: "Ingresa el titulo" }]}
-          >
-            <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
-          </Form.Item>
-
-          <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
-            <Space>
-              <Button type="primary" onClick={handleSave}>
-                Guardar
-              </Button>
-            </Space>
-          </div>
-        </Form>
-      </Modal>
     </>
   );
+};
 
-}
-
-export default CreateContent
+export default EditContent;

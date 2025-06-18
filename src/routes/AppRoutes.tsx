@@ -10,6 +10,10 @@ import ReporterosPanel from "../pages/Script/Panel-Reporteros";
 import ReportPanel from "../pages/Report/Panel";
 import PanelRespaldo from "../components/newsletter/PanelRespaldo";
 import ReportPanelMensual from "../pages/Report/Panel-Mensual";
+import PanelContents from "../components/contents/PanelContents";
+import ListWeeklySummarys from "../components/summary/ListWeeklySummarys";
+import WeeklySummaryDetails from "../components/summary/WeeklySummaryDetails";
+import DailySummaryDetails from "../components/summary/DailySummaryDetails";
 
 const AppRoutes: React.FC = () => {
     return (
@@ -76,6 +80,38 @@ const AppRoutes: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <PanelRespaldo />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/panel-contents"
+                element={
+                    <ProtectedRoute>
+                        <PanelContents />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/resumenes-semanales"
+                element={
+                    <ProtectedRoute>
+                        <ListWeeklySummarys />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/resumen-semanal/:id"
+                element={
+                    <ProtectedRoute>
+                        <WeeklySummaryDetails />
+                    </ProtectedRoute>
+                }
+            />
+            <Route
+                path="/resumen-diario/:id"
+                element={
+                    <ProtectedRoute>
+                        <DailySummaryDetails />
                     </ProtectedRoute>
                 }
             />

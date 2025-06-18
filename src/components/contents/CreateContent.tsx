@@ -57,9 +57,9 @@ const CreateContent: React.FC<Props> = ({
 
   const handleSave = () => {
     if (visibleAddNote) {
-      ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddNote, setLoading)
+      ContentUtils.handleAddSaveForContentsPanel(addForm, setContents, script!, setVisibleAddNote, setLoading)
     } else {
-      ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddSection, setLoading)
+      ContentUtils.handleAddSaveForContentsPanel(addForm, setContents, script!, setVisibleAddSection, setLoading)
     }
   }
 

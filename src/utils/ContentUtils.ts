@@ -1,8 +1,18 @@
 import { FormInstance, message } from "antd";
 import { Content } from "../interfaces/Content";
-import { changePositionContent, createContent, createFileAudio, deleteContent, getContentsApprovedForScript, getContentsDisapprovedForScript, getContentsForScript, getContentsForUser, getFileAudio, updateContent } from "../services/ApiCalls";
+import { changePositionContent, createContent, createFileAudio, deleteContent, getContents, getContentsApprovedForScript, getContentsDisapprovedForScript, getContentsForScript, getContentsForUser, getFileAudio, updateContent } from "../services/ApiCalls";
 import { handleErrorServer } from "./Custom/CustomErrors";
 import axios from "axios";
+
+export const handleSetContents = async(
+    setContents: (contents: (prevContents: Content[]) => Content[]) => void
+) => {
+    try {
+        setContents(await getContents());
+    } catch (error) {
+        handleErrorServer(error);
+    }
+}
 
 export const handleSetContentsWithScript = async(
     idScript: number,
@@ -146,7 +156,22 @@ export const handleEditSave = async(
         const values = await editForm.validateFields();
         const type = 'textContent' in values ? 'Nota' : 'Sección';
 
-        await updateContent( record.id!, { script, type, ...values } );
+        const {mediaFile, ...vaueDetails} = values;
+
+        const fileObj = mediaFile?.[0]?.originFileObj;
+
+        let fileId = null;
+
+        if (fileObj) {
+            const resAudio = await createFileAudio(fileObj);
+            fileId = resAudio.fileId;
+        }
+
+        if (fileId !== null) {
+            await updateContent( record.id!, { script, type, url: fileId, ...vaueDetails } );
+        } else {
+            await updateContent( record.id!, { script, type, ...vaueDetails } );
+        }
 
         let contents;
         if ( script === null ) {
@@ -154,6 +179,68 @@ export const handleEditSave = async(
         } else {
             contents = await getContentsApprovedForScript( script! );
         }
+        setContents( contents );
+
+        setLoading(false); 
+        message.success('Contenido editado correctamente');
+
+        editForm.resetFields();
+        setVisibleViewContent( false );
+
+
+    } catch ( error ) {
+        console.log(error)
+        handleErrorServer( error );
+    }
+}
+
+export const handleEditSaveForContentsPanel = async(
+    record: Content,
+    editForm: FormInstance,
+    setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
+    script: number | null,
+    setVisibleViewContent: ( visibleViewContent: boolean ) => void,
+    setLoading: (loading: boolean) => void,
+) => {
+    setLoading(true); // Activamos el estado de loading
+
+    const today = new Date();
+    const createdAt = new Date(record.createdAt!);
+
+    const isDifferentDay =
+        createdAt.getFullYear() !== today.getFullYear() ||
+        createdAt.getMonth() !== today.getMonth() ||
+        createdAt.getDate() !== today.getDate();
+    
+    if (!isDifferentDay && localStorage.getItem('typeUser') === 'reportero_user') {
+        editForm.resetFields();
+        setVisibleViewContent( false );
+
+        return message.error('No puedes editar este contenido');
+    }
+    
+    try {
+        const values = await editForm.validateFields();
+        const type = 'textContent' in values ? 'Nota' : 'Sección';
+        
+        const {mediaFile, ...vaueDetails} = values;
+
+        const fileObj = mediaFile?.[0]?.originFileObj;
+
+        let fileId = null;
+
+        if (fileObj) {
+            const resAudio = await createFileAudio(fileObj);
+            fileId = resAudio.fileId;
+        }
+
+        if (fileId !== null) {
+            await updateContent( record.id!, { script, type, url: fileId, ...vaueDetails } );
+        } else {
+            await updateContent( record.id!, { script, type, ...vaueDetails } );
+        }
+
+        const contents = await getContents();
         setContents( contents );
 
         setLoading(false); 
@@ -301,6 +388,80 @@ export const handleAddSave = async(
         } else {
             contents = await getContentsApprovedForScript( script! )
         }
+
+        setLoading(false);
+
+        message.success('Contenido agregado exitosamente');
+
+        addForm.resetFields();
+        setContents( contents );
+        setVisibleAddContent( false );
+        
+
+    } catch ( error ) {
+        console.log(error);
+        setLoading(false);
+        handleErrorServer( error );
+    }
+}
+
+export const handleAddSaveForContentsPanel = async(
+    addForm: FormInstance,
+    setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
+    script: number | null,
+    setVisibleAddContent: ( visibleAddContent: boolean ) => void,
+    setLoading: (loading: boolean) => void // Paso el setLoading aquí
+) => {
+    try {
+        setLoading(true); // Activamos el estado de loading
+
+        const values = await addForm.validateFields();
+
+        console.log(values);
+
+        if (!values.textContent) {
+            await createContent({
+                type: 'Sección',
+                title: values.title,
+                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación',
+                textContent: 'Sn',
+                dependence: 'Sn',
+                classification: 'Sn',
+                url: 'Sin Audio',
+                status: true,
+                script: script,
+            });
+
+            setLoading(false);
+
+            addForm.resetFields();
+            setContents( await getContentsApprovedForScript( script! ) );
+            setVisibleAddContent( false );
+
+            return message.success('Contenido agregado exitosamente');
+        }
+
+        const { mediaFile, ...valueDetails } = values;
+
+        
+
+        const fileObj = mediaFile?.[0]?.originFileObj;
+
+        const type = 'textContent' in values ? 'Nota' : 'Sección';
+
+        // Logica para subir contenido
+        // Subir audio
+        let fileId = 'Sin Audio';
+        if ( fileObj ) {
+            const resAudio = await createFileAudio( fileObj );
+            fileId = resAudio.fileId;
+        }
+
+        if (!valueDetails.classification) valueDetails.classification = 'Contenido General';
+
+        await createContent({ script, type, url: fileId, ...valueDetails });
+
+        const contents = await getContents();
 
         setLoading(false);
 

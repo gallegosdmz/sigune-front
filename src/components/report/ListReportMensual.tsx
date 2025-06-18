@@ -109,10 +109,9 @@ const ListReportsMensual: React.FC = () => {
 
     const exportToWord = async (report: {
         total: number;
-        propios: number;
-        coproducidos: number;
-        byDependence: any[];
-        byClassification: any[];
+        totalPropios: number;
+        totalCoproducidos: number;
+        months: any[];
     }) => {
 
         const logoBuffer = await getLogoBuffer();
@@ -222,7 +221,7 @@ const ListReportsMensual: React.FC = () => {
                     ),
                 }),
                 new TableRow({
-                    children: [report.propios, report.coproducidos, []].map(items =>
+                    children: [report.totalPropios, report.totalCoproducidos, []].map(items =>
                         new TableCell({
                             children: buildCellContent(items),
                         })
@@ -289,7 +288,11 @@ const ListReportsMensual: React.FC = () => {
 
         const blob = await Packer.toBlob(doc);
         saveAs(blob, "REPORTE_MENSUAL.docx");
-        message.success(`Exportados ${report.propios + report.coproducidos} elementos.`);
+        
+        console.log("Reporte recibido:", report);
+        const propios = Number(report.totalPropios ?? 0);
+        const coproducidos = Number(report.totalCoproducidos ?? 0);
+        message.success(`Exportados ${propios + coproducidos} elementos.`);
     };
 
 
@@ -376,28 +379,22 @@ const ListReportsMensual: React.FC = () => {
                     onOpenChange={(open) => setDropdownOpen(open)}
                 >
                     {localStorage.getItem('typeUser') === 'admin_user' ? (
-                        <Button
-                            type="primary"
-                        >
+                        <Button type="primary">
                             <DownOutlined
                                 className={css`
-                    transition: transform 0.3s ease;
-                    transform: rotate(${dropdownOpen ? "180deg" : "0deg"});
-                  `}
+                                    transition: transform 0.3s ease;
+                                    transform: rotate(${dropdownOpen ? "180deg" : "0deg"});
+                                `}
                             />
-                            Seleccionar Año{" "}
+                            Seleccionar Año
                         </Button>
-                    ) : (
-                        <></>
-                    )}
+                    ) : null}
                 </Dropdown>
             }
         >
             {period !== null ? (
                 <Table columns={columns} dataSource={dataSource} rowKey="id" />
-            ) : (
-                <></>
-            )}
+            ) : null}
         </Card>
     );
 }

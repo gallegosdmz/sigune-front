@@ -191,21 +191,21 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
 
             <Form.Item
               name="head"
-              label="Cabecera"
+              label="Cabeza"
               rules={[
-                { required: true, message: "Ingresa la cabecera" },
+                { required: true, message: "Ingresa la cabeza" },
                 {
                   validator: (_, value) => {
                     if (!value || value.length >= 50) {
                       return Promise.resolve();
                     }
-                    return Promise.reject(new Error("La cabecera debe tener al menos 50 caracteres"));
+                    return Promise.reject(new Error("La cabeza debe tener al menos 50 caracteres"));
                   },
                 },
               ]}
               validateTrigger={['onChange', 'onBlur']}
             >
-              <Input placeholder="Cabecera" style={{ borderRadius: '4px' }} />
+              <Input placeholder="Cabeza" style={{ borderRadius: '4px' }} />
             </Form.Item>
 
             <Form.Item

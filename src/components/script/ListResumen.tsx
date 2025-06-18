@@ -70,6 +70,19 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
       key: "title",
     },
     {
+      title: 'Fecha de Creado',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (_, record) =>
+        record.createdAt
+          ? new Date(record.createdAt).toLocaleDateString("es-ES", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })
+          : "Fecha no disponible",
+    },
+    {
       title: "Usuario",
       dataIndex: "user",
       key: "user",
@@ -278,10 +291,10 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
       ],
     })
 
-    message.success('Guión exportado correctamente');
+    message.success('Bitacora exportado correctamente');
 
     const blob = await Packer.toBlob(doc)
-    saveAs(blob, "GUION_NOTICIAS.docx")
+    saveAs(blob, "BITACORA.docx")
   }
 
   const handleExport = async () => {
@@ -294,7 +307,7 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
 
   return (
     <Modal
-      title={<Title level={4}>Generar Resumen</Title>}
+      title={<Title level={4}>Generar Bitacora</Title>}
       open={modalResumen}
       onCancel={() => setModalResumen(false)}
       footer={[]}

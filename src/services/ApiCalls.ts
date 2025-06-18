@@ -4,7 +4,9 @@ import { User } from "../interfaces/User";
 import { Script } from "../interfaces/Script";
 import { Content } from "../interfaces/Content";
 import { NewsLetter } from "../interfaces/NewsLetter";
-const API_URL = 'http://82.25.93.144/api';
+import { WeeklySummary } from "../interfaces/WeeklySummary";
+import { DailySummary } from "../interfaces/DailySummary";
+const API_URL = 'http://localhost:3000/api';
 
 const getAuthHeaders = () => ({
     headers: {
@@ -444,6 +446,132 @@ export const updateNewsLetter = async(id: number, newsLetter: NewsLetter) => {
 export const deleteNewsLetter = async(id: number) => {
     const response = await axios.delete(
         `${ API_URL }/newsletters/${ id }`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+// Weekly Summarys
+export const getWeeklySummarys = async() => {
+    const response = await axios.get(
+        `${ API_URL }/weekly-summarys/`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getWeeklySummary = async(id: number) => {
+    const response = await axios.get(
+        `${ API_URL }/weekly-summarys/${id}`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const createWeeklySummary = async(date: string) => {
+    const data = {
+        date: date,
+    }
+    
+    const response = await axios.post(
+        `${ API_URL }/weekly-summarys/`,
+        data,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const updateWeeklySummary = async(id: number, data: WeeklySummary) => {
+    const response = await axios.patch(
+        `${ API_URL }/weekly-summarys/${id}`,
+        data,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const deleteWeeklySummary = async(id: number) => {
+    const response = await axios.delete(
+        `${ API_URL }/weekly-summarys/${id}`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getDailySummarys = async() => {
+    const response = await axios.get(
+        `${ API_URL }/daily-summarys`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getDailySummary = async(id: number) => {
+    const response = await axios.get(
+        `${ API_URL }/daily-summarys/${id}`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const createDailySummary = async(data: DailySummary) => {
+    const response = await axios.post(
+        `${ API_URL }/daily-summarys`,
+        data,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const updateDailySummary = async(id: number, data: DailySummary) => {
+    const response = await axios.patch(
+        `${ API_URL }/daily-summarys/${id}`,
+        data,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const deleteDailySummary = async(id: number) => {
+    const response = await axios.delete(
+        `${ API_URL }/daily-summarys/${id}`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const mergeContents = async(
+    dailySummaryId: number,
+    contentIdsToRemove: number[],
+    newContentData: {
+        type: string;
+        title: string;
+        head: string;
+        textContent: string;
+        classification: string;
+        dependence?: string;
+        url?: string;
+        position?: number;
+        status?: boolean;
+    }
+) => {
+    const response = await axios.post(
+        `${ API_URL }/daily-summarys/${dailySummaryId}/merge-contents`,
+        {
+            contentIdsToRemove,
+            newContentData
+        },
         getAuthHeaders(),
     );
 
