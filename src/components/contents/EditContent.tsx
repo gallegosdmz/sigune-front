@@ -5,8 +5,9 @@ import type { Content } from "../../interfaces/Content"
 import * as ContentUtils from "../../utils/ContentUtils"
 import { useCallback, useEffect, useRef, useState } from "react"
 import ReactQuill from "react-quill"
-import { InboxOutlined, PlayCircleOutlined } from "@ant-design/icons"
+import { InboxOutlined, PlayCircleOutlined, PlusOutlined } from "@ant-design/icons"
 import debounce from "lodash.debounce"
+import SelectDailySummaryModal from "./SelectDailySummaryModal"
 
 type Props = {
   content: Content | null,
@@ -27,6 +28,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
   const [editorContent, setEditorContent] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false) // Estado de loading
   const [errors, setErrors] = useState<any[]>([]);
+  const [modalSelectDailySummary, setModalSelectDailySummary] = useState(false);
   const classification = Form.useWatch('classification', editForm);
 
 
@@ -320,6 +322,14 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
 
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Space>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  onClick={() => setModalSelectDailySummary(true)}
+                >
+                  Agregar a Resumen Diario
+                </Button>
+
                 {localStorage.getItem('typeUser') === 'editor_user' ? (
                   <></>
                 ) : (
@@ -384,6 +394,16 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
           </Form>
         </Spin>
       </Modal>
+
+      <SelectDailySummaryModal
+        setModalSelectDailySummary={setModalSelectDailySummary}
+        modalSelectDailySummary={modalSelectDailySummary}
+        content={content}
+        onSuccess={() => {
+          // Aquí puedes agregar lógica adicional después de agregar el contenido al resumen
+          console.log('Contenido agregado exitosamente al resumen diario');
+        }}
+      />
     </>
   );
 };

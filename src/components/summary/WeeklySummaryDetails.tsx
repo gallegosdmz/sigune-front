@@ -29,6 +29,16 @@ const WeeklySummaryDetails: React.FC = () => {
         return days[date.getDay()];
     };
 
+    const formatDate = (dateString: string | Date): Date => {
+        // Si ya es un Date, devolverlo directamente
+        if (dateString instanceof Date) {
+            return dateString;
+        }
+        // Crear la fecha en la zona horaria local para evitar desplazamientos
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day); // month - 1 porque getMonth() es 0-based
+    };
+
     const getLogoBuffer = async () => {
         const response = await fetch(
           "https://res.cloudinary.com/gallegos-dev/image/upload/v1747338557/Captura_de_pantalla_2025-05-15_134857_exjtsy.png",
@@ -94,7 +104,7 @@ const WeeklySummaryDetails: React.FC = () => {
 
         const imageParagraph = new Paragraph({
             children: [image],
-            alignment: "center",
+            alignment: AlignmentType.LEFT,
             spacing: { after: 100 },
         });
 
@@ -107,14 +117,14 @@ const WeeklySummaryDetails: React.FC = () => {
                     font: 'Arial',
                 }),
                 new TextRun({
-                    text: getDayName(new Date(weeklySummary.date)),
+                    text: getDayName(formatDate(weeklySummary.date)),
                     bold: true,
                     size: 26,
                     font: 'Arial',
                     break: 1
                 }),
                 new TextRun({
-                    text: new Date(weeklySummary.date).toLocaleDateString("es-ES", {
+                    text: formatDate(weeklySummary.date).toLocaleDateString("es-ES", {
                         day: "numeric",
                         month: "long",
                         year: "numeric",
@@ -141,7 +151,7 @@ const WeeklySummaryDetails: React.FC = () => {
                         size: 26,
                     }),
                     new TextRun({
-                        text: new Date(dailySummary.date).toLocaleDateString("es-ES", {
+                        text: formatDate(dailySummary.date).toLocaleDateString("es-ES", {
                             day: "numeric",
                             month: "long",
                             year: "numeric",
@@ -162,21 +172,6 @@ const WeeklySummaryDetails: React.FC = () => {
                         new TextRun({
                             text: `${contentIndex + 1}. ${content.type} - ${content.title}`,
                             bold: true,
-                            break: 1,
-                            font: 'Arial',
-                            size: 26,
-                        }),
-                        new TextRun({
-                            text: `Autor: ${typeof content.user === "object" && content.user !== null
-                                ? `${content.user.name} ${content.user.surname}`
-                                : "Desconocido"
-                                }`,
-                            italics: true,
-                            break: 1,
-                            size: 26,
-                        }),
-                        new TextRun({
-                            text: `Encabezado: ${content.head}`,
                             break: 1,
                             font: 'Arial',
                             size: 26,
@@ -263,7 +258,7 @@ const WeeklySummaryDetails: React.FC = () => {
         message.success('Resumen semanal exportado correctamente');
 
         const blob = await Packer.toBlob(doc);
-        saveAs(blob, `RESUMEN_SEMANAL_${new Date(weeklySummary.date).toISOString().split('T')[0]}.docx`);
+        saveAs(blob, `RESUMEN_SEMANAL_${formatDate(weeklySummary.date).toISOString().split('T')[0]}.docx`);
     };
 
     const fetchWeeklySummary = async () => {
@@ -290,7 +285,7 @@ const WeeklySummaryDetails: React.FC = () => {
             dataIndex: 'date',
             key: 'date',
             render: (date: string) => {
-                const dateObj = new Date(date);
+                const dateObj = formatDate(date);
                 const dayName = getDayName(dateObj);
                 return `${dayName}, ${dateObj.toLocaleDateString("es-ES", {
                     day: "numeric",
@@ -335,7 +330,7 @@ const WeeklySummaryDetails: React.FC = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                         <Title level={4}>
                             Resumen Semanal - {(() => {
-                                const date = new Date(weeklySummary.date);
+                                const date = formatDate(weeklySummary.date);
                                 const dayName = getDayName(date);
                                 return `${dayName}, ${date.toLocaleDateString("es-ES", {
                                     day: "numeric",

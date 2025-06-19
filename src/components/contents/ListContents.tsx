@@ -2,10 +2,11 @@ import { Button, Card, Col, Dropdown, MenuProps, Row, Input as SearchInput } fro
 import { Content } from "../../interfaces/Content"
 import { useState } from 'react';
 import Table, { ColumnsType } from 'antd/es/table';
-import { DownOutlined, EyeOutlined } from '@ant-design/icons';
+import { DownOutlined, EyeOutlined, PoweroffOutlined } from '@ant-design/icons';
 import * as ContentUtils from '../../utils/ContentUtils';
 import { css } from '@emotion/css';
-import { useNavigate } from 'react-router-dom'; // ✅ Importación agregada
+import { useNavigate } from 'react-router-dom';
+import { useSystemStatus } from '../../hooks/useSystemStatus';
 
 const { Search } = SearchInput;
 
@@ -35,7 +36,8 @@ const ListContents: React.FC<Props> = ({
     setFile
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const navigate = useNavigate(); 
+    const navigate = useNavigate();
+    const { isSystemOpen, loading, toggleSystem } = useSystemStatus();
 
     const filteredContents = contents.filter(
         (content) =>
@@ -97,6 +99,9 @@ const ListContents: React.FC<Props> = ({
             case "4":
                 navigate("/resumenes-semanales"); 
                 break;
+            case "5":
+                toggleSystem();
+                break;
         }
     };
 
@@ -119,6 +124,15 @@ const ListContents: React.FC<Props> = ({
         {
             key: "4",
             label: "Ver Resúmenes Semanales",
+            onClick: handleMenuClick,
+        },
+        {
+            type: 'divider',
+        },
+        {
+            key: "5",
+            label: isSystemOpen ? "Cerrar Sistema" : "Abrir Sistema",
+            icon: <PoweroffOutlined />,
             onClick: handleMenuClick,
         },
     ];

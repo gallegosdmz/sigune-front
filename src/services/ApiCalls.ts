@@ -577,3 +577,48 @@ export const mergeContents = async(
 
     return response.data;
 }
+
+export const closeSystem = async() => {
+    const response = await axios.patch(
+        `${ API_URL }/roles/closeSystem`,
+        {},
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const openSystem = async() => {
+    const response = await axios.patch(
+        `${ API_URL }/roles/openSystem`,
+        {},
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const getSystemStatus = async() => {
+    const response = await axios.get(
+        `${ API_URL }/roles`,
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}
+
+export const addContentToDailySummary = async(dailySummaryId: number, contentId: number) => {
+    const url = `${ API_URL }/daily-summarys/${dailySummaryId}/add-content`;
+    console.log('URL del endpoint:', url);
+    console.log('Payload:', { contentId });
+    
+    const response = await axios.post(
+        url,
+        {
+            contentId: contentId
+        },
+        getAuthHeaders(),
+    );
+
+    return response.data;
+}

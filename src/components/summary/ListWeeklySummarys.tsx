@@ -22,9 +22,19 @@ const ListWeeklySummarys: React.FC = () => {
         return days[date.getDay()];
     };
 
+    const formatDate = (dateString: string | Date): Date => {
+        // Si ya es un Date, devolverlo directamente
+        if (dateString instanceof Date) {
+            return dateString;
+        }
+        // Crear la fecha en la zona horaria local para evitar desplazamientos
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(year, month - 1, day); // month - 1 porque getMonth() es 0-based
+    };
+
     const filteredWeeklySummarys = weeklySummarys.filter(
         (summary) =>
-            new Date(summary.date).toLocaleDateString("es-ES", {
+            formatDate(summary.date).toLocaleDateString("es-ES", {
                 day: "numeric",
                 month: "long",
                 year: "numeric",
@@ -37,7 +47,7 @@ const ListWeeklySummarys: React.FC = () => {
             dataIndex: 'date',
             key: 'date',
             render: (_, record) => {
-                const date = new Date(record.date);
+                const date = formatDate(record.date);
                 const dayName = getDayName(date);
                 return `${dayName}, ${date.toLocaleDateString("es-ES", {
                     day: "numeric",
