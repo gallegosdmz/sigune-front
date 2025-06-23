@@ -213,15 +213,6 @@ const ListResumenSemanal: React.FC<Props> = ({ setModalResumen, modalResumen, sc
               size: 26,
             }),
             new TextRun({
-              text: `Autor: ${typeof item.user === "object" && item.user !== null
-                  ? `${item.user.name} ${item.user.surname}`
-                  : "Desconocido"
-                }`,
-              italics: true,
-              break: 1,
-              size: 26,
-            }),
-            new TextRun({
               text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
                 day: "numeric",
                 month: "long",

@@ -134,7 +134,7 @@ const ListReportsMensual: React.FC = () => {
         const title = new Paragraph({
             children: [
                 new TextRun({
-                    text: "RESPALDO INFORMATIVO",
+                    text: "REPORTE MENSUAL",
                     bold: true,
                     size: 28,
                     font: "Arial",

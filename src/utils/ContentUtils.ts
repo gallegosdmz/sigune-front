@@ -90,14 +90,36 @@ export const handleModalView = async(
     setFile: ( file: any ) => void,
     setModalView: ( modalView: boolean ) => void,
 ) => {
-    console.log(content);
+    console.log('Content completo:', content);
+    console.log('contentsFiles:', content.contentsFiles);
     setContent( content );
 
-    // Buscar audio
-    if ( content.url !== 'Sin Audio' ) {
-        const file = await getFileAudio( content.url! );
+    // Buscar archivos relacionados
+    if ( content.contentsFiles && content.contentsFiles.length > 0 ) {
+        console.log('Procesando archivos:', content.contentsFiles.length);
+        // Obtener cada archivo individualmente
+        const filePromises = content.contentsFiles.map(async (contentFile) => {
+            if (contentFile.url) {
+                console.log('URL del archivo:', contentFile.url);
+                // Extraer el fileId de la URL de Google Drive
+                const fileId = contentFile.url.split('/')[5]; // La URL es: https://drive.google.com/file/d/{fileId}/view
+                console.log('FileId extraído:', fileId);
+                const file = await getFileAudio( fileId );
+                console.log('Archivo obtenido:', file);
+                return file;
+            }
+            return null;
+        });
+
+        const files = await Promise.all(filePromises);
+        const validFiles = files.filter(file => file !== null);
+        console.log('Archivos válidos:', validFiles);
         
-        setFile( file );
+        if (validFiles.length > 0) {
+            setFile(validFiles);
+        }
+    } else {
+        console.log('No hay archivos relacionados');
     }
 
     setModalView( true );
@@ -158,20 +180,21 @@ export const handleEditSave = async(
 
         const {mediaFile, ...vaueDetails} = values;
 
-        const fileObj = mediaFile?.[0]?.originFileObj;
+        // Lógica para subir múltiples archivos
+        if (mediaFile && mediaFile.length > 0) {
+            // Subir cada archivo individualmente
+            const uploadPromises = mediaFile.map(async (file: any) => {
+                if (file.originFileObj) {
+                    const resAudio = await createFileAudio(record.id!, file.originFileObj);
+                    return resAudio.fileId;
+                }
+                return null;
+            });
 
-        let fileId = null;
-
-        if (fileObj) {
-            const resAudio = await createFileAudio(fileObj);
-            fileId = resAudio.fileId;
+            await Promise.all(uploadPromises);
         }
 
-        if (fileId !== null) {
-            await updateContent( record.id!, { script, type, url: fileId, ...vaueDetails } );
-        } else {
-            await updateContent( record.id!, { script, type, ...vaueDetails } );
-        }
+        await updateContent( record.id!, { script, type, ...vaueDetails } );
 
         let contents;
         if ( script === null ) {
@@ -225,20 +248,21 @@ export const handleEditSaveForContentsPanel = async(
         
         const {mediaFile, ...vaueDetails} = values;
 
-        const fileObj = mediaFile?.[0]?.originFileObj;
+        // Lógica para subir múltiples archivos
+        if (mediaFile && mediaFile.length > 0) {
+            // Subir cada archivo individualmente
+            const uploadPromises = mediaFile.map(async (file: any) => {
+                if (file.originFileObj) {
+                    const resAudio = await createFileAudio(record.id!, file.originFileObj);
+                    return resAudio.fileId;
+                }
+                return null;
+            });
 
-        let fileId = null;
-
-        if (fileObj) {
-            const resAudio = await createFileAudio(fileObj);
-            fileId = resAudio.fileId;
+            await Promise.all(uploadPromises);
         }
 
-        if (fileId !== null) {
-            await updateContent( record.id!, { script, type, url: fileId, ...vaueDetails } );
-        } else {
-            await updateContent( record.id!, { script, type, ...vaueDetails } );
-        }
+        await updateContent( record.id!, { script, type, ...vaueDetails } );
 
         const contents = await getContents();
         setContents( contents );
@@ -262,7 +286,7 @@ export const handleDisapprove = async(
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     setVisibleAddContent: ( visibleAddContent: boolean ) => void
 ) => {
-    const { id, status, createdAt, updatedAt, isDeleted, ...contentDetails } = content;
+    const { id, status, createdAt, updatedAt, isDeleted, contentsFiles, ...contentDetails } = content;
 
     try {
         const contentData = {
@@ -292,7 +316,7 @@ export const handleApprove = async(
     setContents: ( contents: ( prevContents: Content[] ) => Content[] ) => void,
     setVisibleAddContent: ( visibleAddContent: boolean ) => void
 ) => {
-    const { id, status, createdAt, updatedAt, isDeleted, ...contentDetails } = content;
+    const { id, status, createdAt, updatedAt, isDeleted, contentsFiles, ...contentDetails } = content;
 
     try {
         const contentData = {
@@ -300,6 +324,9 @@ export const handleApprove = async(
             status: true,
             script,
         }
+
+        console.log('Datos que se envían al backend:', contentData);
+        console.log('ID del contenido:', id);
 
         await updateContent( id!, contentData );
 
@@ -310,6 +337,7 @@ export const handleApprove = async(
         message.success('Contenido aprobado correctamente');
 
     } catch ( error ) {
+        console.error('Error en handleApprove:', error);
         handleErrorServer( error );
     }
 }
@@ -363,23 +391,26 @@ export const handleAddSave = async(
 
         const { mediaFile, ...valueDetails } = values;
 
-        
-
-        const fileObj = mediaFile?.[0]?.originFileObj;
-
         const type = 'textContent' in values ? 'Nota' : 'Sección';
-
-        // Logica para subir contenido
-        // Subir audio
-        let fileId = 'Sin Audio';
-        if ( fileObj ) {
-            const resAudio = await createFileAudio( fileObj );
-            fileId = resAudio.fileId;
-        }
 
         if (!valueDetails.classification) valueDetails.classification = 'Contenido General';
 
-        await createContent({ script, type, url: fileId, ...valueDetails });
+        // Crear el contenido primero
+        const content = await createContent({ script, type, url: 'Sin Audio', ...valueDetails });
+
+        // Lógica para subir múltiples archivos
+        if (mediaFile && mediaFile.length > 0) {
+            // Subir cada archivo individualmente
+            const uploadPromises = mediaFile.map(async (file: any) => {
+                if (file.originFileObj) {
+                    const resAudio = await createFileAudio(content.id, file.originFileObj);
+                    return resAudio.fileId;
+                }
+                return null;
+            });
+
+            await Promise.all(uploadPromises);
+        }
 
         let contents;
 
@@ -443,23 +474,26 @@ export const handleAddSaveForContentsPanel = async(
 
         const { mediaFile, ...valueDetails } = values;
 
-        
-
-        const fileObj = mediaFile?.[0]?.originFileObj;
-
         const type = 'textContent' in values ? 'Nota' : 'Sección';
-
-        // Logica para subir contenido
-        // Subir audio
-        let fileId = 'Sin Audio';
-        if ( fileObj ) {
-            const resAudio = await createFileAudio( fileObj );
-            fileId = resAudio.fileId;
-        }
 
         if (!valueDetails.classification) valueDetails.classification = 'Contenido General';
 
-        await createContent({ script, type, url: fileId, ...valueDetails });
+        // Crear el contenido primero
+        const content = await createContent({ script, type, url: 'Sin Audio', ...valueDetails });
+
+        // Lógica para subir múltiples archivos
+        if (mediaFile && mediaFile.length > 0) {
+            // Subir cada archivo individualmente
+            const uploadPromises = mediaFile.map(async (file: any) => {
+                if (file.originFileObj) {
+                    const resAudio = await createFileAudio(content.id, file.originFileObj);
+                    return resAudio.fileId;
+                }
+                return null;
+            });
+
+            await Promise.all(uploadPromises);
+        }
 
         const contents = await getContents();
 

@@ -1,6 +1,12 @@
 import { Script } from "./Script";
 import { User } from "./User";
 
+export interface ContentFile {
+    id?: number;
+    url?: string;
+    isDeleted?: boolean;
+}
+
 export interface Content {
     id?: number;
     type: string;
@@ -14,6 +20,7 @@ export interface Content {
     status: boolean;
     script?: number | Script | null;
     user?: number | User;
+    contentsFiles?: ContentFile[];
     createdAt?: Date;
     updatedAt?: Date;
     isDeleted?: boolean;

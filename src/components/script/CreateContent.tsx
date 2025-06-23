@@ -219,14 +219,14 @@ const CreateContent: React.FC<Props> = ({
             )}
 
             <Form.Item
-              label="Archivo multimedia"
+              label="Archivos multimedia"
               name="mediaFile"
               valuePropName="fileList"
               getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
             >
               <Upload.Dragger
                 name="file"
-                multiple={false}
+                multiple={true}
                 accept=".mp3,.wav,.ogg,.mp4,.mov,.avi,.mkv"
                 beforeUpload={(file) => {
                   const isAudioOrVideo = file.type.includes("audio") || file.type.includes("video");
@@ -244,11 +244,10 @@ const CreateContent: React.FC<Props> = ({
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
-                <p className="ant-upload-text">Haz clic o arrastra un archivo de audio o video</p>
+                <p className="ant-upload-text">Haz clic o arrastra archivos de audio o video</p>
                 <p className="ant-upload-hint">Se permiten archivos .mp3, .wav, .mp4, .mov, etc. menores a 10MB</p>
               </Upload.Dragger>
             </Form.Item>
-
 
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Space>

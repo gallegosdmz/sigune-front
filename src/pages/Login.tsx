@@ -45,8 +45,11 @@ const LoginPanel: React.FC = () => {
                 navigate('/panel-guion', { replace: true });
                 localStorage.setItem('typeUser', 'editor_user');
             } else if (data.role.permissions.includes('view_newsletters')) {
-                navigate('/panel-newsletters', { replace: true })
+                navigate('/panel-newsletters', { replace: true });
                 localStorage.setItem('typeUser', 'locutor_user');
+            } else if (data.role.permissions.includes('delete_script') && data.role.permissions.includes('view_contents')) {
+                navigate('/resumenes-semanales', { replace: true });
+                localStorage.setItem('typeUser', 'auxiliar_user');
             } else {
                 navigate('/panel-reporteros', { replace: true });
                 localStorage.setItem('typeUser', 'reportero_user');

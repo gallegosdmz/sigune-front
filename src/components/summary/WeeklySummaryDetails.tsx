@@ -176,23 +176,6 @@ const WeeklySummaryDetails: React.FC = () => {
                             font: 'Arial',
                             size: 26,
                         }),
-                        new TextRun({
-                            text: `Fecha de creación: ${new Date(content.createdAt!).toLocaleDateString("es-ES", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                            })}`,
-                            break: 1,
-                            font: 'Arial',
-                            size: 26,
-                        }),
-                        new TextRun({
-                            text: "Contenido:",
-                            bold: true,
-                            break: 1,
-                            font: 'Arial',
-                            size: 26,
-                        }),
                     ],
                     spacing: { after: 100 },
                 });

@@ -367,12 +367,12 @@ export const deleteContent = async( id: number ) => {
 }
 
 // FILES 
-export const createFileAudio = async(file: File) => {
+export const createFileAudio = async(contentId: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
   
     const response = await axios.post(
-      `${API_URL}/files/`,
+      `${API_URL}/files/${contentId}`,
       formData,
       {
         headers: {

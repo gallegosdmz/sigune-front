@@ -265,22 +265,24 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
             )}
 
             <Form.Item
-              label="Archivo de audio"
-              name="audioFile"
+              label="Archivos multimedia"
+              name="mediaFile"
               valuePropName="fileList"
               getValueFromEvent={(e) => Array.isArray(e) ? e : e?.fileList}
             >
               <Upload.Dragger
                 name="file"
-                multiple={false}
-                accept=".mp3,.wav,.ogg"
+                multiple={true}
+                accept=".mp3,.wav,.ogg,.mp4,.mov,.avi,.mkv"
                 beforeUpload={(file) => {
-                  const isAudio = file.type.includes("audio");
-                  if (!isAudio) {
-                    message.error("Solo se permiten archivos de audio (.mp3, .wav, o .ogg)");
+                  const isAudioOrVideo = file.type.includes("audio") || file.type.includes("video");
+
+                  if (!isAudioOrVideo) {
+                    message.error("Solo se permiten archivos de audio o video (.mp3, .wav, .mp4, etc.)");
                     return Upload.LIST_IGNORE;
                   }
-                  return false;
+
+                  return false; // Evita la subida automática
                 }}
                 showUploadList={{ showRemoveIcon: true }}
                 style={{ marginTop: '20px' }}
@@ -288,30 +290,35 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
                 <p className="ant-upload-drag-icon">
                   <InboxOutlined />
                 </p>
-                <p className="ant-upload-text">Haz clic o arrastra un archivo de audio</p>
-                <p className="ant-upload-hint">Solo archivos .mp3 o .wav menores a 10MB</p>
+                <p className="ant-upload-text">Haz clic o arrastra archivos de audio o video</p>
+                <p className="ant-upload-hint">Se permiten archivos .mp3, .wav, .mp4, .mov, etc. menores a 10MB</p>
               </Upload.Dragger>
 
-              {file?.viewLink && (
+              {Array.isArray(file) && file.length > 0 && (
                 <div style={{ marginTop: 16 }}>
-                  <a
-                    href={file.viewLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      padding: '8px 16px',
-                      backgroundColor: '#f0f0f0',
-                      borderRadius: '6px',
-                      textDecoration: 'none',
-                      color: '#1890ff',
-                      fontWeight: 500,
-                    }}
-                  >
-                    <PlayCircleOutlined style={{ fontSize: '18px', marginRight: 8 }} />
-                    Escuchar audio en Google Drive
-                  </a>
+                  <h4>Archivos actuales:</h4>
+                  {file.map((fileItem, index) => (
+                    <div key={index} style={{ marginBottom: 8 }}>
+                      <a
+                        href={fileItem.viewLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '8px 16px',
+                          backgroundColor: '#f0f0f0',
+                          borderRadius: '6px',
+                          textDecoration: 'none',
+                          color: '#1890ff',
+                          fontWeight: 500,
+                        }}
+                      >
+                        <PlayCircleOutlined style={{ fontSize: '18px', marginRight: 8 }} />
+                        {fileItem.name} - Ver en Google Drive
+                      </a>
+                    </div>
+                  ))}
                 </div>
               )}
             </Form.Item>

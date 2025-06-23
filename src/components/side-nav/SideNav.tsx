@@ -76,6 +76,8 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
     items = [getItem("Guiones", "/panel-reporteros", <BookOutlined />)]
   } else if (localStorage.getItem('typeUser') === 'locutor_user') {
     items = [getItem("Boletines", "/panel-newsletters", <FileOutlined/>)]
+  } else if (localStorage.getItem('typeUser') === 'auxiliar_user') {
+    items = [getItem("Resumenes Semanales", "/resumenes-semanales", <BookOutlined />)]
   }
 
   return (
