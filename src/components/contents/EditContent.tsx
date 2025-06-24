@@ -257,12 +257,9 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
               <Form.Item
                 name="dependence"
                 label="Dependencia"
-                rules={[{ required: true, message: "Selecciona una dependencia" }]}
+                rules={[{ required: true, message: "Ingresa la dependencia" }]}
               >
-                <Select placeholder="Selecciona una dependencia">
-                  <Select.Option value="Secretaria de Salud">Secretaria de Salud</Select.Option>
-                  <Select.Option value="Secreatria de Educación">Secreatria de Educación</Select.Option>
-                </Select>
+                <Input placeholder="Ingresa la dependencia" style={{ borderRadius: '4px' }} />
               </Form.Item>
             )}
 

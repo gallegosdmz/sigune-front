@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { Form, Input, Button, Drawer, FormInstance, Select } from "antd"
+import { Form, Input, Button, Drawer, FormInstance } from "antd"
 import type { NewsLetter } from "../../interfaces/NewsLetter"
 import * as NewsLetterUtils from "../../utils/NewsLetterUtils"
 import { useIsMobile } from "../../hooks/use-media-query"
@@ -44,11 +44,8 @@ const CreateNewsLetter: React.FC<Props> = ({ setNewsLetters, setVisibleAdd, visi
                 placeholder="Escribe el contenido del boletín aquí..."
             />
         </Form.Item>
-        <Form.Item name="dependence" label="Dependencia" rules={[{ required: true, message: "Por favor confirme la dependencia gubernamental" }]}>
-            <Select placeholder="Selecciona una dependencia">
-              <Select.Option value={"Secretaria de Salud"}>Secretaria de Salud</Select.Option>
-              <Select.Option value={"Secreatria de Educación"}>Secreatria de Educación</Select.Option>
-            </Select>
+        <Form.Item name="dependence" label="Dependencia" rules={[{ required: true, message: "Por favor ingresa la dependencia gubernamental" }]}>
+          <Input placeholder="Ingresa la dependencia gubernamental" style={{ borderRadius: '4px' }} />
         </Form.Item>
       </Form>
     </Drawer>
