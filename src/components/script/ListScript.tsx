@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import { Table, Button, Card, type MenuProps, Dropdown, message } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { DndProvider, useDrag, useDrop } from "react-dnd"
@@ -15,6 +15,7 @@ import CreateContent from "./CreateContent"
 import EditContent from "./EditContent"
 import ListExternalContents from "./ListExternalContents"
 import ListResumen from "./ListResumen"
+import ExportConfigModal, { ExportConfig } from "./ExportConfigModal"
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, ImageRun, AlignmentType, Header } from "docx"
 import { saveAs } from "file-saver"
 
@@ -81,6 +82,7 @@ const ListScript: React.FC = () => {
   const [modalResumen, setModalResumen] = useState<boolean>(false)
 
   const [showListExternal, setShowListExternal] = useState(false)
+  const [exportConfigModalVisible, setExportConfigModalVisible] = useState<boolean>(false)
 
   const { idScript } = useParams<{ idScript: string }>() // PONER COMO PARAMETRO EN SET DE SCRIPTS
 
@@ -181,7 +183,7 @@ const ListScript: React.FC = () => {
     return paragraphs;
   };
 
-  const exportToWord = async () => {
+  const exportToWord = async (exportConfig?: ExportConfig) => {
     const logoBuffer = await getLogoBuffer()
 
     const image = new ImageRun({
@@ -228,32 +230,50 @@ const ListScript: React.FC = () => {
     })
 
     const contentParagraphs = data.flatMap((item, index) => {
-      const headerParagraph = new Paragraph({
-        children: [
-          new TextRun({
-            text: `${index + 1}. ${item.type} - ${item.title}`,
-            bold: true,
-            break: 1,
-            font: 'Arial',
-            size: 26,
-          }),
-          new TextRun({
-            text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}`,
-            break: 1,
-            font: 'Arial',
-            size: 26,
-          }),
-        ],
-        spacing: { after: 100 },
-      });
+      const paragraphs: Paragraph[] = [];
+      
+      // Solo incluir campos según la configuración
+      const config = exportConfig?.[item.id!] || { title: true, head: true, textContent: true };
+      
+      // Incluir título si está seleccionado
+      if (config.title) {
+        const headerParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: `${index + 1}. ${item.type} - ${item.title}`,
+              bold: true,
+              break: 1,
+              font: 'Arial',
+              size: 26,
+            }),
+          ],
+          spacing: { after: 100 },
+        });
+        paragraphs.push(headerParagraph);
+      }
+      
+      // Incluir cabeza si está seleccionada
+      if (config.head) {
+        const headParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: item.head,
+              font: 'Arial',
+              size: 24,
+            }),
+          ],
+          spacing: { after: 100 },
+        });
+        paragraphs.push(headParagraph);
+      }
+      
+      // Incluir contenido si está seleccionado
+      if (config.textContent) {
+        const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
+        paragraphs.push(...contentParagraphs);
+      }
 
-      const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
-
-      return [headerParagraph, ...contentParagraphs];
+      return paragraphs;
     });
 
     // Firma al final del documento (alineada y centrada como en el ejemplo)
@@ -313,6 +333,11 @@ const ListScript: React.FC = () => {
     const blob = await Packer.toBlob(doc)
     saveAs(blob, "GUION_NOTICIAS.docx")
   }
+
+  const handleExportWithConfig = (config: ExportConfig) => {
+    setExportConfigModalVisible(false);
+    exportToWord(config);
+  };
 
   const typeUser = localStorage.getItem("typeUser");
 
@@ -388,7 +413,7 @@ const ListScript: React.FC = () => {
     } else if (e.key === "4") {
       setModalResumen(true)
     } else if (e.key === "5") {
-      exportToWord()
+      setExportConfigModalVisible(true)
     }
   }
 
@@ -510,6 +535,13 @@ const ListScript: React.FC = () => {
           />
 
           <ListResumen setModalResumen={setModalResumen} modalResumen={modalResumen} contents={data} />
+          
+          <ExportConfigModal
+            visible={exportConfigModalVisible}
+            onCancel={() => setExportConfigModalVisible(false)}
+            onExport={handleExportWithConfig}
+            contents={data}
+          />
         </div>
       ) : (
         <ListExternalContents
