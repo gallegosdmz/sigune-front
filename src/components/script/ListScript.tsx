@@ -240,7 +240,7 @@ const ListScript: React.FC = () => {
         const headerParagraph = new Paragraph({
           children: [
             new TextRun({
-              text: `${index + 1}. ${item.type} - ${item.title}`,
+              text: `${index + 1}.- ${item.title}`,
               bold: true,
               break: 1,
               font: 'Arial',

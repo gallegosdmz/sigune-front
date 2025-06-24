@@ -105,37 +105,64 @@ const ListContents: React.FC<Props> = ({
         }
     };
 
-    const items: MenuProps["items"] = [
-        {
-            key: "1",
-            label: "Agregar Nota",
-            onClick: handleMenuClick,
-        },
-        {
-            key: "2",
-            label: "Generar Resumen",
-            onClick: handleMenuClick,
-        },
-        {
-            key: "3",
-            label: "Generar Bitacora",
-            onClick: handleMenuClick,
-        },
-        {
-            key: "4",
-            label: "Ver Resúmenes Semanales",
-            onClick: handleMenuClick,
-        },
-        {
-            type: 'divider',
-        },
-        {
-            key: "5",
-            label: isSystemOpen ? "Cerrar Sistema" : "Abrir Sistema",
-            icon: <PoweroffOutlined />,
-            onClick: handleMenuClick,
-        },
-    ];
+    let items: MenuProps["items"];
+
+    if (localStorage.getItem('typeUser') === 'admin_user') {
+        items = [
+            {
+                key: "1",
+                label: "Agregar Nota",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "2",
+                label: "Generar Resumen",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "3",
+                label: "Generar Bitacora",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "4",
+                label: "Ver Resúmenes Semanales",
+                onClick: handleMenuClick,
+            },
+            {
+                type: 'divider',
+            },
+            {
+                key: "5",
+                label: isSystemOpen ? "Cerrar Sistema" : "Abrir Sistema",
+                icon: <PoweroffOutlined />,
+                onClick: handleMenuClick,
+            },
+        ];
+    } else {
+        items = [
+            {
+                key: "1",
+                label: "Agregar Nota",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "2",
+                label: "Generar Resumen",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "3",
+                label: "Generar Bitacora",
+                onClick: handleMenuClick,
+            },
+            {
+                key: "4",
+                label: "Ver Resúmenes Semanales",
+                onClick: handleMenuClick,
+            },
+        ];
+    }
 
     return (
         <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>

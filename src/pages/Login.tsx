@@ -48,7 +48,7 @@ const LoginPanel: React.FC = () => {
                 navigate('/panel-newsletters', { replace: true });
                 localStorage.setItem('typeUser', 'locutor_user');
             } else if (data.role.permissions.includes('delete_script') && data.role.permissions.includes('view_contents')) {
-                navigate('/resumenes-semanales', { replace: true });
+                navigate('/panel-contents', { replace: true });
                 localStorage.setItem('typeUser', 'auxiliar_user');
             } else {
                 navigate('/panel-reporteros', { replace: true });

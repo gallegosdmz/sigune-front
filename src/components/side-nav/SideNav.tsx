@@ -71,13 +71,13 @@ const SideNav: React.FC<SideNavProps> = ({ isOpen }) => {
       ])
     ];
   } else if (localStorage.getItem('typeUser') === 'editor_user') {
-    items = [getItem("Guiones", "/panel-guion", <BookOutlined />)]
+    items = [getItem("Notas", "/panel-contents", <HomeOutlined />), getItem("Guiones", "/panel-guion", <BookOutlined />)]
   } else if (localStorage.getItem('typeUser') === 'reportero_user') {
     items = [getItem("Guiones", "/panel-reporteros", <BookOutlined />)]
   } else if (localStorage.getItem('typeUser') === 'locutor_user') {
     items = [getItem("Boletines", "/panel-newsletters", <FileOutlined/>)]
   } else if (localStorage.getItem('typeUser') === 'auxiliar_user') {
-    items = [getItem("Resumenes Semanales", "/resumenes-semanales", <BookOutlined />)]
+    items = [getItem("Notas", "/panel-contents", <HomeOutlined />), getItem("Resumenes Semanales", "/resumenes-semanales", <BookOutlined />)]
   }
 
   return (
