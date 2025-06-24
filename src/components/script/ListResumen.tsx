@@ -211,16 +211,6 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
             font: 'Arial',
             size: 26,
           }),
-          new TextRun({
-            text: `Fecha: ${new Date(item.createdAt!).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}`,
-            break: 1,
-            font: 'Arial',
-            size: 26,
-          }),
         ],
         spacing: { after: 100 },
       });
