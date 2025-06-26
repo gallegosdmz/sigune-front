@@ -47,11 +47,6 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
         label: "Agregar Guión",
         onClick: handleMenuClick,
       },
-      {
-        key: "2",
-        label: "Generar Resumen Semanal",
-        onClick: handleMenuClick,
-      },
     ]
 
     const columns = [

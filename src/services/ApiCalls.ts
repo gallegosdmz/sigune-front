@@ -6,7 +6,7 @@ import { Content } from "../interfaces/Content";
 import { NewsLetter } from "../interfaces/NewsLetter";
 import { WeeklySummary } from "../interfaces/WeeklySummary";
 import { DailySummary } from "../interfaces/DailySummary";
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://82.25.93.144/api';
 
 const getAuthHeaders = () => ({
     headers: {

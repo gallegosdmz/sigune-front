@@ -9,7 +9,7 @@ const useTokenRenewal = ( navigate: any ) => {
 
             try {
                 const response = await axios.get(
-                    'http://localhost:3000/api/auth/check-auth-status',
+                    'http://82.25.93.144/api/auth/check-auth-status',
                     {
                         headers: {
                             Authorization: `Bearer ${ token }`,

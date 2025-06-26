@@ -162,17 +162,7 @@ export const handleEditSave = async(
     const today = new Date();
     const createdAt = new Date(record.createdAt!);
 
-    const isDifferentDay =
-        createdAt.getFullYear() !== today.getFullYear() ||
-        createdAt.getMonth() !== today.getMonth() ||
-        createdAt.getDate() !== today.getDate();
     
-    if (!isDifferentDay && localStorage.getItem('typeUser') === 'reportero_user') {
-        editForm.resetFields();
-        setVisibleViewContent( false );
-
-        return message.error('No puedes editar este contenido');
-    }
     
     try {
         const values = await editForm.validateFields();
@@ -227,20 +217,6 @@ export const handleEditSaveForContentsPanel = async(
 ) => {
     setLoading(true); // Activamos el estado de loading
 
-    const today = new Date();
-    const createdAt = new Date(record.createdAt!);
-
-    const isDifferentDay =
-        createdAt.getFullYear() !== today.getFullYear() ||
-        createdAt.getMonth() !== today.getMonth() ||
-        createdAt.getDate() !== today.getDate();
-    
-    if (!isDifferentDay && localStorage.getItem('typeUser') === 'reportero_user') {
-        editForm.resetFields();
-        setVisibleViewContent( false );
-
-        return message.error('No puedes editar este contenido');
-    }
     
     try {
         const values = await editForm.validateFields();
