@@ -44,7 +44,7 @@ export const handleAddSave = async(
         addFormRole.resetFields();
 
     } catch ( error ) {
-        
+        console.log(error)
         handleErrorServer( error );
     }
 }

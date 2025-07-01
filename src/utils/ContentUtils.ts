@@ -511,35 +511,3 @@ export const handleDelete = async(
     }
 }
 
-// Handles - Verificación de Texto
-export const checkSpelling = async(
-    textToCheck: string,
-    setErrors: (errors: any[]) => void,
-) => {
-    if (!textToCheck.trim()) {
-        setErrors([]);
-        return;
-    }
-
-
-    try {
-        const response = await axios.post(
-            'https://api.languagetool.org/v2/check',
-            new URLSearchParams({
-                text: textToCheck,
-                language: 'es'
-            }),
-            {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-            }
-        );
-        setErrors(response.data.matches || []);
-
-
-    } catch (error) {
-        handleErrorServer(error);
-    } 
-
-}
