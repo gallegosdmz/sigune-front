@@ -46,7 +46,7 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
     setExportConfig(prev => ({
       ...prev,
       [contentId]: {
-        ...prev[contentId],
+        ...(prev[contentId] || { title: true, head: true, textContent: true }),
         [field]: checked,
       },
     }));
@@ -55,8 +55,10 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
   const handleSelectAll = (field: 'title' | 'head' | 'textContent', checked: boolean) => {
     const newConfig: ExportConfig = {};
     contents.forEach((content) => {
+      // Preservar la configuración existente o usar valores por defecto si no existe
+      const existingConfig = exportConfig[content.id!] || { title: true, head: true, textContent: true };
       newConfig[content.id!] = {
-        ...exportConfig[content.id!],
+        ...existingConfig,
         [field]: checked,
       };
     });
@@ -66,7 +68,10 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
   const handleSelectAllContents = (checked: boolean) => {
     const newConfig: ExportConfig = {};
     contents.forEach((content) => {
+      // Preservar la configuración existente o usar valores por defecto si no existe
+      const existingConfig = exportConfig[content.id!] || { title: true, head: true, textContent: true };
       newConfig[content.id!] = {
+        ...existingConfig,
         title: checked,
         head: checked,
         textContent: checked,

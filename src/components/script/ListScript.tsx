@@ -305,6 +305,7 @@ const ListScript: React.FC = () => {
           children: [
             new TextRun({
               text: item.head,
+              bold: true,
               font: 'Arial',
               size: 24,
             }),
