@@ -123,92 +123,104 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
 
     const paragraphs: Paragraph[] = [];
 
-    // Si no hay contenido HTML estructurado, tratar el texto como un párrafo simple
-    if (!wrapper.querySelector("p, div, span, br")) {
-      const text = wrapper.textContent || html;
-      if (text.trim()) {
-        paragraphs.push(
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: text.trim(),
-                font: "Arial",
-                size: 26,
-              }),
-            ],
-            spacing: { after: 100 },
-          })
-        );
-      }
-      return paragraphs;
-    }
+    // Función para procesar nodos recursivamente
+    const processNode = (node: Node, parentTag?: string): (TextRun | 'BREAK')[] => {
+      const runs: (TextRun | 'BREAK')[] = [];
 
-    // Procesar párrafos existentes
-    wrapper.querySelectorAll("p").forEach(p => {
-      const runs: TextRun[] = [];
-
-      p.childNodes.forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE) {
-          const text = node.textContent || "";
-          if (text.trim()) {
-            runs.push(
-              new TextRun({
-                text,
-                font: "Arial",
-                size: 26,
-              })
-            );
-          }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-          const el = node as HTMLElement;
-          const tag = el.tagName.toLowerCase();
-
-          if (tag === "br") {
-            runs.push(new TextRun({ break: 1 }));
-          } else {
-            const text = el.textContent || "";
-            if (text.trim()) {
-              runs.push(
-                new TextRun({
-                  text,
-                  bold: tag === "b" || tag === "strong",
-                  italics: tag === "i" || tag === "em",
-                  font: "Arial",
-                  size: 26,
-                })
-              );
-            }
-          }
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || "";
+        if (text.trim()) {
+          runs.push(
+            new TextRun({
+              text: text,
+              font: "Arial",
+              size: 26,
+              bold: parentTag === "b" || parentTag === "strong",
+              italics: parentTag === "i" || parentTag === "em",
+            })
+          );
         }
-      });
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        const tag = el.tagName.toLowerCase();
 
-      if (runs.length > 0) {
-        paragraphs.push(new Paragraph({ 
-          children: runs,
-          spacing: { after: 100 }
-        }));
+        if (tag === "br") {
+          runs.push('BREAK');
+        } else if (tag === "p" || tag === "div") {
+          // Procesar contenido del párrafo/div
+          el.childNodes.forEach(childNode => {
+            runs.push(...processNode(childNode, tag));
+          });
+          // Agregar salto de línea después del párrafo
+          runs.push('BREAK');
+        } else {
+          // Procesar elementos inline (span, strong, b, i, em, etc.)
+          el.childNodes.forEach(childNode => {
+            runs.push(...processNode(childNode, tag));
+          });
+        }
+      }
+
+      return runs;
+    };
+
+    // Procesar todo el contenido del wrapper
+    const allRuns: (TextRun | 'BREAK')[] = [];
+    wrapper.childNodes.forEach(node => {
+      allRuns.push(...processNode(node));
+    });
+
+    // Dividir en párrafos basándose en los saltos de línea
+    let currentParagraphRuns: TextRun[] = [];
+    
+    allRuns.forEach((item, index) => {
+      if (item === 'BREAK') {
+        // Si hay contenido en el párrafo actual, crear el párrafo
+        if (currentParagraphRuns.length > 0) {
+          paragraphs.push(
+            new Paragraph({
+              children: currentParagraphRuns,
+              spacing: { after: 100, line: 276 } // 1.15 line spacing
+            })
+          );
+          currentParagraphRuns = [];
+        }
+      } else {
+        currentParagraphRuns.push(item);
       }
     });
 
-    // Si no hay párrafos pero hay otros elementos, procesar el contenido completo
+    // Agregar el último párrafo si hay contenido
+    if (currentParagraphRuns.length > 0) {
+      paragraphs.push(
+        new Paragraph({
+          children: currentParagraphRuns,
+          spacing: { after: 100, line: 276 } // 1.15 line spacing
+        })
+      );
+    }
+
+    // Si no se generaron párrafos, crear uno con el texto plano
     if (paragraphs.length === 0) {
       const text = wrapper.textContent || html;
       if (text.trim()) {
-        // Dividir por saltos de línea para crear párrafos separados
-        const lines = text.split(/\n+/).filter(line => line.trim());
+        // Preservar saltos de línea del texto original
+        const lines = text.split(/\n/);
         lines.forEach(line => {
-          paragraphs.push(
-            new Paragraph({
-              children: [
-                new TextRun({
-                  text: line.trim(),
-                  font: "Arial",
-                  size: 26,
-                }),
-              ],
-              spacing: { after: 100 },
-            })
-          );
+          if (line.trim()) {
+            paragraphs.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: line,
+                    font: "Arial",
+                    size: 26,
+                  }),
+                ],
+                spacing: { after: 100, line: 276 }, // 1.15 line spacing
+              })
+            );
+          }
         });
       }
     }

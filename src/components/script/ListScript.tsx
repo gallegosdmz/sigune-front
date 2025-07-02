@@ -194,7 +194,7 @@ const ListScript: React.FC = () => {
           paragraphs.push(
             new Paragraph({
               children: currentParagraphRuns,
-              spacing: { after: 100 }
+              spacing: { after: 100, line: 276 } // 1.15 line spacing (24pt * 1.15 = 27.6pt = 276 twips)
             })
           );
           currentParagraphRuns = [];
@@ -209,7 +209,7 @@ const ListScript: React.FC = () => {
       paragraphs.push(
         new Paragraph({
           children: currentParagraphRuns,
-          spacing: { after: 100 }
+          spacing: { after: 100, line: 276 } // 1.15 line spacing
         })
       );
     }
@@ -231,7 +231,7 @@ const ListScript: React.FC = () => {
                     size: 26,
                   }),
                 ],
-                spacing: { after: 100 },
+                spacing: { after: 100, line: 276 }, // 1.15 line spacing
               })
             );
           }
