@@ -137,6 +137,27 @@ const ListScript: React.FC = () => {
 
     const paragraphs: Paragraph[] = [];
 
+    // Si no hay contenido HTML estructurado, tratar el texto como un párrafo simple
+    if (!wrapper.querySelector("p, div, span, br")) {
+      const text = wrapper.textContent || html;
+      if (text.trim()) {
+        paragraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: text.trim(),
+                font: "Arial",
+                size: 26,
+              }),
+            ],
+            spacing: { after: 100 },
+          })
+        );
+      }
+      return paragraphs;
+    }
+
+    // Procesar párrafos existentes
     wrapper.querySelectorAll("p").forEach(p => {
       const runs: TextRun[] = [];
 
@@ -176,9 +197,35 @@ const ListScript: React.FC = () => {
       });
 
       if (runs.length > 0) {
-        paragraphs.push(new Paragraph({ children: runs }));
+        paragraphs.push(new Paragraph({ 
+          children: runs,
+          spacing: { after: 100 }
+        }));
       }
     });
+
+    // Si no hay párrafos pero hay otros elementos, procesar el contenido completo
+    if (paragraphs.length === 0) {
+      const text = wrapper.textContent || html;
+      if (text.trim()) {
+        // Dividir por saltos de línea para crear párrafos separados
+        const lines = text.split(/\n+/).filter(line => line.trim());
+        lines.forEach(line => {
+          paragraphs.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: line.trim(),
+                  font: "Arial",
+                  size: 26,
+                }),
+              ],
+              spacing: { after: 100 },
+            })
+          );
+        });
+      }
+    }
 
     return paragraphs;
   };
