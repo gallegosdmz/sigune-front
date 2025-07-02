@@ -161,7 +161,11 @@ const ListModalDaily: React.FC<Props> = ({ setModalResumen, modalResumen, conten
           rowSelection={rowSelection}
           dataSource={dataSource}
           columns={columns}
-          pagination={false}
+          pagination={{
+            pageSize: 5,
+            showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} elementos`,
+            size: 'default'
+          }}
           size="small"
         />
 
