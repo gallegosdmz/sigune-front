@@ -23,6 +23,7 @@ type TableItem = {
   type: string;
   title: string;
   textContent: string;
+  head?: string;
   dependence: string;
   classification: string;
   url?: string;
@@ -53,6 +54,7 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
     type: item.type,
     title: item.title,
     textContent: item.textContent,
+    head: item.head,
     dependence: item.dependence,
     classification: item.classification,
     url: item.url,
@@ -274,9 +276,27 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
         spacing: { after: 100 },
       });
 
+      // Agregar la cabeza si existe
+      const headParagraphs: Paragraph[] = [];
+      if (item.head && item.head.trim()) {
+        headParagraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: item.head,
+                bold: true,
+                font: 'Arial',
+                size: 24,
+              }),
+            ],
+            spacing: { after: 100, line: 276 }, // 1.15 line spacing
+          })
+        );
+      }
+
       const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
 
-      return [headerParagraph, ...contentParagraphs];
+      return [headerParagraph, ...headParagraphs, ...contentParagraphs];
     });
 
     // Firma al final del documento (alineada y centrada como en el ejemplo)
@@ -359,7 +379,12 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
         rowSelection={rowSelection}
         dataSource={dataSource}
         columns={columns}
-        pagination={false}
+        pagination={{
+          pageSize: 5,
+          showSizeChanger: true,
+          showTotal: (total, range) => `${range[0]}-${range[1]} de ${total} elementos`,
+          size: 'default'
+        }}
         size="small"
       />
 
