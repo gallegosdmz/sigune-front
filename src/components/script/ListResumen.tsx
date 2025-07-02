@@ -276,6 +276,24 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
         spacing: { after: 100 },
       });
 
+      // Agregar el nombre del usuario si existe
+      const userParagraphs: Paragraph[] = [];
+      if (item.user && item.user.name && item.user.surname) {
+        userParagraphs.push(
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Autor: ${item.user.name} ${item.user.surname}`,
+                italics: true,
+                font: 'Arial',
+                size: 22,
+              }),
+            ],
+            spacing: { after: 100, line: 276 }, // 1.15 line spacing
+          })
+        );
+      }
+
       // Agregar la cabeza si existe
       const headParagraphs: Paragraph[] = [];
       if (item.head && item.head.trim()) {
@@ -296,7 +314,7 @@ const ListResumen: React.FC<Props> = ({ setModalResumen, modalResumen, contents 
 
       const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
 
-      return [headerParagraph, ...headParagraphs, ...contentParagraphs];
+      return [headerParagraph, ...userParagraphs, ...headParagraphs, ...contentParagraphs];
     });
 
     // Firma al final del documento (alineada y centrada como en el ejemplo)
