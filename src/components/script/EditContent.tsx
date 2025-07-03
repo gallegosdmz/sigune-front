@@ -14,11 +14,13 @@ type Props = {
   setContents: (content: (prevContent: Content[]) => Content[]) => void,
   setVisibleViewNote: (visibleViewNote: boolean) => void,
   setVisibleViewSection: (visibleViewSection: boolean) => void,
+  setVisibleViewAdvance: (visibleViewAdvance: boolean) => void,
   visibleViewNote: boolean,
-  visibleViewSection: boolean
+  visibleViewSection: boolean,
+  visibleViewAdvance: boolean
 }
 
-const EditContent: React.FC<Props> = ({ content, script, file, setFile, setContents, setVisibleViewNote, setVisibleViewSection, visibleViewNote, visibleViewSection }) => {
+const EditContent: React.FC<Props> = ({ content, script, file, setFile, setContents, setVisibleViewNote, setVisibleViewSection, setVisibleViewAdvance, visibleViewNote, visibleViewSection, visibleViewAdvance }) => {
   const [editForm] = Form.useForm();
   const [editorContent, setEditorContent] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false) // Estado de loading
@@ -64,13 +66,22 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
           setVisibleViewNote,
           setLoading
         )
-      } else {
+      } else if (visibleViewSection) {
         ContentUtils.handleEditSave(
           content!,
           editForm,
           setContents,
           script!,
           setVisibleViewSection,
+          setLoading
+        )
+      } else if (visibleViewAdvance) {
+        ContentUtils.handleEditSave(
+          content!,
+          editForm,
+          setContents,
+          script!,
+          setVisibleViewAdvance,
           setLoading
         )
       }
@@ -326,6 +337,37 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
           <Form form={editForm} layout="vertical">
             <Form.Item name="title" label="Título" rules={[{ required: true, message: "Ingresa el título" }]}>
               <Input placeholder="Título" />
+            </Form.Item>
+
+            {/* Sección de botones en el centro abajo */}
+            <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+              <Space>
+                <Button type="primary" onClick={() => handleSave()}>
+                  Guardar
+                </Button>
+              </Space>
+            </div>
+          </Form>
+        </Spin>
+      </Modal>
+
+      <Modal
+        title="Editar Avance"
+        open={visibleViewAdvance}
+        onCancel={() => ContentUtils.handleAddCancel(setVisibleViewAdvance)}
+        footer={null}
+        centered
+        width={800}
+        style={{ padding: '20px' }}
+      >
+        <Spin spinning={loading}>
+          <Form form={editForm} layout="vertical">
+            <Form.Item name="title" label="Título" rules={[{ required: true, message: "Ingresa el título" }]}>
+              <Input placeholder="Título" style={{ borderRadius: '4px' }} />
+            </Form.Item>
+
+            <Form.Item name="head" initialValue="isAdvance" style={{ display: 'none' }}>
+              <input type="hidden" />
             </Form.Item>
 
             {/* Sección de botones en el centro abajo */}

@@ -168,7 +168,38 @@ export const handleEditSave = async(
         const values = await editForm.validateFields();
         const type = 'textContent' in values ? 'Nota' : 'Sección';
 
+        let contents;
+
         const {mediaFile, ...vaueDetails} = values;
+
+        if (!values.textContent && values.head) {
+            
+            await updateContent( record.id!, 
+                { script, type: 'Avance',
+                title: values.title,
+                head: values.head,
+                textContent: 'Sn',
+                dependence: 'Sn',
+                classification: 'Sn',
+                url: 'Sin Audio',
+                status: true,
+                } );
+
+            if ( script === null ) {
+                contents = await getContentsForUser();
+            } else {
+                contents = await getContentsApprovedForScript( script! );
+            }
+            setContents( contents );
+    
+            setLoading(false); 
+            message.success('Contenido editado correctamente');
+    
+            editForm.resetFields();
+            setVisibleViewContent( false );
+
+            return;
+        }
 
         // Lógica para subir múltiples archivos
         if (mediaFile && mediaFile.length > 0) {
@@ -186,7 +217,7 @@ export const handleEditSave = async(
 
         await updateContent( record.id!, { script, type, ...vaueDetails } );
 
-        let contents;
+        
         if ( script === null ) {
             contents = await getContentsForUser();
         } else {
@@ -343,11 +374,11 @@ export const handleAddSave = async(
 
         console.log(values);
 
-        if (!values.textContent && values.head) {
+        if (!values.textContent && values.head === "isAdvance") {
             await createContent({
                 type: 'Avance',
                 title: values.title,
-                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación - isAdvance',
+                head: values.head,
                 textContent: 'Sn',
                 dependence: 'Sn',
                 classification: 'Sn',

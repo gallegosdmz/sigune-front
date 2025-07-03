@@ -80,6 +80,7 @@ const ListScript: React.FC = () => {
   const [visibleAddAdvance, setVisibleAddAdvance] = useState<boolean>(false)
   const [visibleViewNote, setVisibleViewNote] = useState<boolean>(false)
   const [visibleViewSection, setVisibleViewSection] = useState<boolean>(false)
+  const [visibleViewAdvance, setVisibleViewAdvance] = useState<boolean>(false)
   const [modalResumen, setModalResumen] = useState<boolean>(false)
 
   const [showListExternal, setShowListExternal] = useState(false)
@@ -453,7 +454,9 @@ const ListScript: React.FC = () => {
               record,
               setContent,
               setFile,
-              record.type === "Nota" ? setVisibleViewNote : setVisibleViewSection,
+              record.type === "Nota" ? setVisibleViewNote : 
+              record.type === "Avance" ? setVisibleViewAdvance : 
+              setVisibleViewSection,
             )
           }
         >
@@ -600,8 +603,10 @@ const ListScript: React.FC = () => {
             setContents={setData}
             setVisibleViewNote={setVisibleViewNote}
             setVisibleViewSection={setVisibleViewSection}
+            setVisibleViewAdvance={setVisibleViewAdvance}
             visibleViewNote={visibleViewNote}
             visibleViewSection={visibleViewSection}
+            visibleViewAdvance={visibleViewAdvance}
           />
 
           <ListResumen setModalResumen={setModalResumen} modalResumen={modalResumen} contents={data} />
