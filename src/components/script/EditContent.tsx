@@ -376,6 +376,24 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
                 <Button type="primary" onClick={() => handleSave()}>
                   Guardar
                 </Button>
+
+                {localStorage.getItem('typeUser') === 'admin_user' ? (
+                  <Popconfirm
+                    title="¿Estás seguro de eliminar este avance?"
+                    onConfirm={() => {
+                      ContentUtils.handleDelete(content!, script!, setContents, setVisibleViewAdvance);
+                    }}
+                    okText="Eliminar"
+                    okType="danger"
+                    cancelText="Cancelar"
+                  >
+                    <Button danger type="primary">
+                      Eliminar
+                    </Button>
+                  </Popconfirm>
+                ) : (
+                  <></>
+                )}
               </Space>
             </div>
           </Form>

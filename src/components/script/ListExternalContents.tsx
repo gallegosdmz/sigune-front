@@ -27,6 +27,7 @@ const ListExternalContents: React.FC<Props> = ({ setShowListExternal, setFile, f
 
     const [visibleViewNote, setVisibleViewNote] = useState<boolean>(false);
     const [visibleViewSection, setVisibleViewSection] = useState<boolean>(false);
+    const [visibleViewAdvance, setVisibleViewAdvance] = useState<boolean>(false);
 
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -74,7 +75,7 @@ const ListExternalContents: React.FC<Props> = ({ setShowListExternal, setFile, f
             <Button
                 type="link"
                 icon={<EyeOutlined />}
-                onClick={() => ContentUtils.handleModalView( record, setContent, setFile ,record.type === 'Nota' ? setVisibleViewNote : setVisibleViewSection )}
+                onClick={() => ContentUtils.handleModalView( record, setContent, setFile ,record.type === 'Nota' ? setVisibleViewNote : record.type === "Avance" ? setVisibleViewAdvance : setVisibleViewSection )}
             >
                 Ver
             </Button>
@@ -110,8 +111,10 @@ const ListExternalContents: React.FC<Props> = ({ setShowListExternal, setFile, f
           setContents={setContents}
           setVisibleViewNote={setVisibleViewNote}
           setVisibleViewSection={setVisibleViewSection}
+          setVisibleViewAdvance={setVisibleViewAdvance}
           visibleViewNote={visibleViewNote}
           visibleViewSection={visibleViewSection}
+          visibleViewAdvance={visibleViewAdvance}
         />
         </>
     );

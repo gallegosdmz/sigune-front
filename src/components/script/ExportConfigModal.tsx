@@ -32,11 +32,21 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
     if (visible) {
       const defaultConfig: ExportConfig = {};
       contents.forEach((content) => {
-        defaultConfig[content.id!] = {
-          title: true,
-          head: true,
-          textContent: true,
-        };
+        // Si es de tipo Avance, solo marcar el título
+        if (content.type === 'Avance') {
+          defaultConfig[content.id!] = {
+            title: true,
+            head: false,
+            textContent: false,
+          };
+        } else {
+          // Para Notas y Secciones, marcar todos los campos
+          defaultConfig[content.id!] = {
+            title: true,
+            head: true,
+            textContent: true,
+          };
+        }
       });
       setExportConfig(defaultConfig);
     }

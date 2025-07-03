@@ -177,7 +177,7 @@ export const handleEditSave = async(
             await updateContent( record.id!, 
                 { script, type: 'Avance',
                 title: values.title,
-                head: values.head,
+                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación - isAdvance',
                 textContent: 'Sn',
                 dependence: 'Sn',
                 classification: 'Sn',
@@ -378,7 +378,7 @@ export const handleAddSave = async(
             await createContent({
                 type: 'Avance',
                 title: values.title,
-                head: values.head,
+                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación - isAdvance',
                 textContent: 'Sn',
                 dependence: 'Sn',
                 classification: 'Sn',
