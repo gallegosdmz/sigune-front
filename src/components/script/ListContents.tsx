@@ -21,6 +21,7 @@ const ListContents: React.FC = () => {
     const [visibleViewNote, setVisibleViewNote] = useState<boolean>(false);
     const [visibleAddSection, setVisibleAddSection] = useState<boolean>(false);
     const [visibleViewSection, setVisibleViewSection] = useState<boolean>(false);
+    const [visibleAddAdvance, setVisibleAddAdvance] = useState<boolean>(false);
 
     useEffect(() => {
         ContentUtils.handleSetContentsForUser( setContents );
@@ -96,8 +97,10 @@ const ListContents: React.FC = () => {
                 setContents={setContents}
                 setVisibleAddNote={setVisibleAddNote}
                 setVisibleAddSection={setVisibleAddSection}
+                setVisibleAddAdvance={setVisibleAddAdvance}
                 visibleAddNote={visibleAddNote}
                 visibleAddSection={visibleAddSection}
+                visibleAddAdvance={visibleAddAdvance}
            />
 
             <EditContent

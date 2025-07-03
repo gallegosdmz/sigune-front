@@ -13,8 +13,10 @@ type Props = {
   setContents: (content: (prevContent: Content[]) => Content[]) => void
   setVisibleAddNote: (visibleAddNote: boolean) => void
   setVisibleAddSection: (visibleAddSection: boolean) => void
+  setVisibleAddAdvance: (visibleAddAdvance: boolean) => void
   visibleAddNote: boolean
   visibleAddSection: boolean
+  visibleAddAdvance: boolean
 }
 
 const CreateContent: React.FC<Props> = ({
@@ -22,8 +24,10 @@ const CreateContent: React.FC<Props> = ({
   setContents,
   setVisibleAddNote,
   setVisibleAddSection,
+  setVisibleAddAdvance,
   visibleAddNote,
   visibleAddSection,
+  visibleAddAdvance,
 }) => {
   const [addForm] = Form.useForm()
     const [editorContent, setEditorContent] = useState<string>("")
@@ -32,11 +36,11 @@ const CreateContent: React.FC<Props> = ({
 
   // Reset form when modal closes
   useEffect(() => {
-    if (!visibleAddNote && !visibleAddSection) {
+    if (!visibleAddNote && !visibleAddSection && !visibleAddAdvance) {
       addForm.resetFields()
       setEditorContent("")
     }
-  }, [visibleAddNote, visibleAddSection, addForm])
+  }, [visibleAddNote, visibleAddSection, visibleAddAdvance, addForm])
 
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditorContent(e.target.value);
@@ -53,8 +57,10 @@ const CreateContent: React.FC<Props> = ({
     setTimeout(() => {
       if (visibleAddNote) {
         ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddNote, setLoading)
-      } else {
+      } else if (visibleAddSection) {
         ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddSection, setLoading)
+      } else if (visibleAddAdvance) {
+        ContentUtils.handleAddSave(addForm, setContents, script!, setVisibleAddAdvance, setLoading)
       }
     }, 0);
   };
@@ -224,6 +230,38 @@ const CreateContent: React.FC<Props> = ({
             rules={[{ required: true, message: "Ingresa el titulo" }]}
           >
             <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
+          </Form.Item>
+
+          <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
+            <Space>
+              <Button type="primary" onClick={handleSave}>
+                Guardar
+              </Button>
+            </Space>
+          </div>
+        </Form>
+      </Modal>
+
+      <Modal
+        title={<div style={{ textAlign: "left" }}>Agregar Avance</div>}
+        open={visibleAddAdvance}
+        onCancel={() => ContentUtils.handleAddCancel(setVisibleAddAdvance)}
+        footer={null}
+        centered
+        width={800}
+        style={{ padding: '20px' }}
+      >
+        <Form form={addForm} layout="vertical">
+          <Form.Item
+            name="title"
+            label="Titulo"
+            rules={[{ required: true, message: "Ingresa el titulo" }]}
+          >
+            <Input placeholder="Titulo" style={{ borderRadius: '4px' }} />
+          </Form.Item>
+
+          <Form.Item name="head" initialValue="isAdvance" style={{ display: 'none' }}>
+            <input type="hidden" />
           </Form.Item>
 
           <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>

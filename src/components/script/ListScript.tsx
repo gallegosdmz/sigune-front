@@ -77,6 +77,7 @@ const ListScript: React.FC = () => {
 
   const [visibleAddNote, setVisibleAddNote] = useState<boolean>(false)
   const [visibleAddSection, setVisibleAddSection] = useState<boolean>(false)
+  const [visibleAddAdvance, setVisibleAddAdvance] = useState<boolean>(false)
   const [visibleViewNote, setVisibleViewNote] = useState<boolean>(false)
   const [visibleViewSection, setVisibleViewSection] = useState<boolean>(false)
   const [modalResumen, setModalResumen] = useState<boolean>(false)
@@ -469,10 +470,12 @@ const ListScript: React.FC = () => {
     } else if (e.key === "2") {
       setVisibleAddSection(true)
     } else if (e.key === "3") {
-      setShowListExternal(true)
+      setVisibleAddAdvance(true)
     } else if (e.key === "4") {
-      setModalResumen(true)
+      setShowListExternal(true)
     } else if (e.key === "5") {
+      setModalResumen(true)
+    } else if (e.key === "6") {
       setExportConfigModalVisible(true)
     }
   }
@@ -493,16 +496,21 @@ const ListScript: React.FC = () => {
       },
       {
         key: "3",
-        label: "Ver Externos",
+        label: "Agregar Avance",
         onClick: handleMenuClick,
       },
       {
         key: "4",
-        label: "Resumen",
+        label: "Ver Externos",
         onClick: handleMenuClick,
       },
       {
         key: "5",
+        label: "Resumen",
+        onClick: handleMenuClick,
+      },
+      {
+        key: "6",
         label: "Exportar",
         onClick: handleMenuClick,
       },
@@ -510,7 +518,7 @@ const ListScript: React.FC = () => {
   } else if (localStorage.getItem('typeUser') === 'editor_user') {
     items = [
       {
-        key: "5",
+        key: "6",
         label: "Exportar",
         onClick: handleMenuClick,
       },
@@ -578,8 +586,10 @@ const ListScript: React.FC = () => {
             setContents={setData}
             setVisibleAddNote={setVisibleAddNote}
             setVisibleAddSection={setVisibleAddSection}
+            setVisibleAddAdvance={setVisibleAddAdvance}
             visibleAddNote={visibleAddNote}
             visibleAddSection={visibleAddSection}
+            visibleAddAdvance={visibleAddAdvance}
           />
 
           <EditContent

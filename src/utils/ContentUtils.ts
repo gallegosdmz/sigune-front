@@ -343,6 +343,28 @@ export const handleAddSave = async(
 
         console.log(values);
 
+        if (!values.textContent && values.head) {
+            await createContent({
+                type: 'Avance',
+                title: values.title,
+                head: 'No contiene header, se esta haciendo el autorellenado para poder pasar la validación - isAdvance',
+                textContent: 'Sn',
+                dependence: 'Sn',
+                classification: 'Sn',
+                url: 'Sin Audio',
+                status: true,
+                script: script,
+            });
+
+            setLoading(false);
+
+            addForm.resetFields();
+            setContents( await getContentsApprovedForScript( script! ) );
+            setVisibleAddContent( false );
+
+            return message.success('Contenido agregado exitosamente');
+        }
+
         if (!values.textContent) {
             await createContent({
                 type: 'Sección',
