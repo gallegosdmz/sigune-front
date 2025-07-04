@@ -203,7 +203,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
               <Upload.Dragger
                 name="file"
                 multiple={true}
-                accept=".mp3,.wav,.ogg,.m4a,.mp4,.mov,.avi,.mkv"
+                accept=".mp3,.wav,.ogg,.m4a,.M4A,.mp4,.mov,.avi,.mkv,.opus,.aac,.flac,.wma,.aiff,.alac,.webm,.3gp,.flv,.wmv,.m4v,.m4b,.m4p,.ac3,.amr,.au,.mid,.midi,.ra,.rm,.rmvb,.ts,.vob,.asf,.divx,.f4v,.f4p,.f4a,.f4b"
                 beforeUpload={(file) => {
                   const isAudioOrVideo = file.type.includes("audio") || file.type.includes("video");
 

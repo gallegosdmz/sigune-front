@@ -296,12 +296,15 @@ const ListScript: React.FC = () => {
       // Solo incluir campos según la configuración
       const config = exportConfig?.[item.id!] || { title: true, head: true, textContent: true };
       
+      // Contar solo las Notas para la numeración
+      const notaCount = data.slice(0, index + 1).filter(content => content.type === 'Nota').length;
+      
       // Incluir título si está seleccionado
       if (config.title) {
         const headerParagraph = new Paragraph({
           children: [
             new TextRun({
-              text: `${index + 1}.- ${item.title}`,
+              text: item.type === 'Avance' ? item.title : `${notaCount}.- ${item.title}`,
               bold: true,
               break: 1,
               font: 'Arial',
