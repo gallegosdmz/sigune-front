@@ -355,6 +355,20 @@ const ListScript: React.FC = () => {
           });
           paragraphs.push(userParagraph);
         }
+        
+        // Agregar línea horizontal de separación después de cada contenido
+        const separatorParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: "_________________________________________________________________________________",
+              font: "Arial",
+              size: 20,
+            }),
+          ],
+          spacing: { before: 200, after: 200 },
+          alignment: AlignmentType.CENTER,
+        });
+        paragraphs.push(separatorParagraph);
       }
 
       return paragraphs;

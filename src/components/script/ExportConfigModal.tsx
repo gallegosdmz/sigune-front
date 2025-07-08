@@ -32,15 +32,15 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
     if (visible) {
       const defaultConfig: ExportConfig = {};
       contents.forEach((content) => {
-        // Si es de tipo Avance, solo marcar el título
-        if (content.type === 'Avance') {
+        // Si es de tipo Avance o Sección, solo marcar el título
+        if (content.type === 'Avance' || content.type === 'Sección') {
           defaultConfig[content.id!] = {
             title: true,
             head: false,
             textContent: false,
           };
         } else {
-          // Para Notas y Secciones, marcar todos los campos
+          // Para Notas, marcar todos los campos
           defaultConfig[content.id!] = {
             title: true,
             head: true,
@@ -206,6 +206,7 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
                 <Checkbox
                   checked={exportConfig[content.id!]?.head || false}
                   onChange={(e) => handleFieldChange(content.id!, 'head', e.target.checked)}
+                  disabled={content.type === 'Avance' || content.type === 'Sección'}
                 >
                   <Text strong>{getFieldLabel('head')}:</Text> {stripHtml(content.head).substring(0, 100)}...
                 </Checkbox>
@@ -213,6 +214,7 @@ const ExportConfigModal: React.FC<ExportConfigModalProps> = ({
                 <Checkbox
                   checked={exportConfig[content.id!]?.textContent || false}
                   onChange={(e) => handleFieldChange(content.id!, 'textContent', e.target.checked)}
+                  disabled={content.type === 'Avance' || content.type === 'Sección'}
                 >
                   <Text strong>{getFieldLabel('textContent')}:</Text> {stripHtml(content.textContent).substring(0, 100)}...
                 </Checkbox>
