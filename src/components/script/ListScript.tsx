@@ -324,7 +324,6 @@ const ListScript: React.FC = () => {
           children: [
             new TextRun({
               text: item.head,
-              bold: true,
               font: 'Arial',
               size: 24,
             }),
@@ -338,6 +337,24 @@ const ListScript: React.FC = () => {
       if (config.textContent) {
         const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
         paragraphs.push(...contentParagraphs);
+        
+        // Agregar el nombre completo del usuario debajo del contenido
+        if (item.user && typeof item.user === 'object' && 'name' in item.user && 'surname' in item.user) {
+          const user = item.user as User;
+          const userParagraph = new Paragraph({
+            children: [
+              new TextRun({
+                text: `${user.name} ${user.surname}`,
+                font: 'Arial',
+                size: 20,
+                italics: true,
+              }),
+            ],
+            spacing: { before: 100, after: 200 },
+            alignment: AlignmentType.RIGHT,
+          });
+          paragraphs.push(userParagraph);
+        }
       }
 
       return paragraphs;
