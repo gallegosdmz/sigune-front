@@ -1,17 +1,18 @@
-import { Button, Card, Col, Row, Table, Typography, message, Dropdown, MenuProps } from 'antd';
+import { Button, Card, Col, Row, Table, Typography, message, Dropdown, MenuProps, Upload, Modal } from 'antd';
 import { DailySummary } from "../../interfaces/DailySummary";
 import { Content } from "../../interfaces/Content";
 import { useState, useEffect } from 'react';
-import { EyeOutlined, MergeCellsOutlined, FileWordOutlined, DownOutlined } from '@ant-design/icons';
+import { EyeOutlined, MergeCellsOutlined, FileWordOutlined, DownOutlined, UploadOutlined } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
-import { getDailySummary } from '../../services/ApiCalls';
+import { getDailySummary, updateContent } from '../../services/ApiCalls';
 import { handleErrorServer } from '../../utils/Custom/CustomErrors';
 import EditContent from '../contents/EditContent';
 import MergeNotesModal from '../contents/MergeNotesModal';
 import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel, Header, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
 import { css } from '@emotion/css';
+import mammoth from 'mammoth';
 
 const { Title } = Typography;
 
@@ -22,8 +23,13 @@ const DailySummaryDetails: React.FC = () => {
     const [visibleViewNote, setVisibleViewNote] = useState(false);
     const [visibleViewSection, setVisibleViewSection] = useState(false);
     const [modalMergeNotes, setModalMergeNotes] = useState(false);
+    const [modalImportWord, setModalImportWord] = useState(false);
+    const [modalPreviewImport, setModalPreviewImport] = useState(false);
     const [file, setFile] = useState<any | null>(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [importLoading, setImportLoading] = useState(false);
+    const [previewContents, setPreviewContents] = useState<Partial<Content>[]>([]);
+    const [importedFile, setImportedFile] = useState<File | null>(null);
     const { id } = useParams();
     const navigate = useNavigate();
 
@@ -347,6 +353,169 @@ const DailySummaryDetails: React.FC = () => {
         saveAs(blob, `RESUMEN_DIARIO_${formatDate(dailySummary.date).toISOString().split('T')[0]}.docx`);
     };
 
+    const detectContentType = (title: string, head: string, textContent: string): string => {
+        // Palabras clave que indican que es una sección
+        const sectionKeywords = ['sección', 'section', 'programa', 'program', 'especial', 'special', 'reportaje', 'report'];
+        
+        const allText = `${title} ${head} ${textContent}`.toLowerCase();
+        
+        for (const keyword of sectionKeywords) {
+            if (allText.includes(keyword)) {
+                return 'Sección';
+            }
+        }
+        
+        return 'Nota';
+    };
+
+    const parseWordDocument = async (file: File): Promise<Partial<Content>[]> => {
+        // Leer el archivo de Word
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.extractRawText({ arrayBuffer });
+        const text = result.value;
+
+        // Parsear el contenido del documento
+        const lines = text.split('\n').filter(line => line.trim());
+        
+        const contents: Partial<Content>[] = [];
+        let currentContent: Partial<Content> | null = null;
+        let currentTextContent = '';
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim();
+            
+            // Detectar si es un título de contenido (formato: "1.- Título")
+            const titleMatch = line.match(/^(\d+)\.-\s*(.+)$/);
+            
+            if (titleMatch) {
+                // Si hay un contenido anterior, guardarlo
+                if (currentContent && currentTextContent.trim()) {
+                    currentContent.textContent = currentTextContent.trim();
+                    // Detectar el tipo de contenido
+                    currentContent.type = detectContentType(
+                        currentContent.title || '', 
+                        currentContent.head || '', 
+                        currentContent.textContent || ''
+                    );
+                    contents.push(currentContent);
+                }
+                
+                // Iniciar nuevo contenido
+                currentContent = {
+                    type: 'Nota', // Se determinará al final
+                    title: titleMatch[2],
+                    head: '', // Se llenará con la siguiente línea
+                    textContent: '',
+                    dependence: 'Importado',
+                    classification: 'Importado',
+                    status: true,
+                };
+                currentTextContent = '';
+            } else if (currentContent && !currentContent.head && line && !line.includes('_____________________________________')) {
+                // La primera línea después del título es el encabezado
+                currentContent.head = line;
+            } else if (currentContent && line && !line.includes('_____________________________________')) {
+                // Agregar al contenido del texto
+                if (currentTextContent) {
+                    currentTextContent += '\n';
+                }
+                currentTextContent += line;
+            }
+        }
+
+        // Agregar el último contenido si existe
+        if (currentContent && currentTextContent.trim()) {
+            currentContent.textContent = currentTextContent.trim();
+            // Detectar el tipo de contenido
+            currentContent.type = detectContentType(
+                currentContent.title || '', 
+                currentContent.head || '', 
+                currentContent.textContent || ''
+            );
+            contents.push(currentContent);
+        }
+
+        return contents;
+    };
+
+    const importFromWord = async (file: File) => {
+        if (!dailySummary) return;
+
+        try {
+            setImportLoading(true);
+            
+            // Parsear el documento
+            const parsedContents = await parseWordDocument(file);
+            
+            // Mostrar preview
+            setPreviewContents(parsedContents);
+            setImportedFile(file);
+            setModalImportWord(false);
+            setModalPreviewImport(true);
+            
+        } catch (error) {
+            console.error('Error al procesar documento:', error);
+            message.error('Error al procesar el documento de Word');
+            handleErrorServer(error);
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
+    const confirmImport = async () => {
+        if (!dailySummary || !importedFile) return;
+
+        try {
+            setImportLoading(true);
+            
+            // Actualizar los contenidos existentes con los nuevos datos
+            if (dailySummary.contents && Array.isArray(dailySummary.contents)) {
+                const existingContents = dailySummary.contents.filter(c => typeof c === 'object') as Content[];
+                
+                for (let i = 0; i < Math.min(previewContents.length, existingContents.length); i++) {
+                    const newContent = previewContents[i];
+                    const existingContent = existingContents[i];
+                    
+                    if (newContent && existingContent) {
+                        await updateContent(existingContent.id!, {
+                            ...existingContent,
+                            title: newContent.title || existingContent.title,
+                            head: newContent.head || existingContent.head,
+                            textContent: newContent.textContent || existingContent.textContent,
+                        });
+                    }
+                }
+            }
+
+            message.success('Documento de Word importado correctamente');
+            setModalPreviewImport(false);
+            setPreviewContents([]);
+            setImportedFile(null);
+            fetchDailySummary(); // Recargar los datos
+            
+        } catch (error) {
+            console.error('Error al importar documento:', error);
+            message.error('Error al importar el documento de Word');
+            handleErrorServer(error);
+        } finally {
+            setImportLoading(false);
+        }
+    };
+
+    const handleFileUpload = (file: File) => {
+        const isWord = file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+                      file.name.endsWith('.docx') || 
+                      file.name.endsWith('.doc');
+        
+        if (!isWord) {
+            message.error('Por favor selecciona un archivo de Word (.docx o .doc)');
+            return false;
+        }
+        
+        importFromWord(file);
+        return false; // Prevenir el comportamiento por defecto
+    };
+
     const fetchDailySummary = async () => {
         try {
             if (id) {
@@ -382,6 +551,9 @@ const DailySummaryDetails: React.FC = () => {
             case "2":
                 setModalMergeNotes(true);
                 break;
+            case "3":
+                setModalImportWord(true);
+                break;
         }
     };
 
@@ -390,6 +562,12 @@ const DailySummaryDetails: React.FC = () => {
             key: "1",
             label: "Exportar a Word",
             icon: <FileWordOutlined />,
+            onClick: handleMenuClick,
+        },
+        {
+            key: "3",
+            label: "Importar desde Word",
+            icon: <UploadOutlined />,
             onClick: handleMenuClick,
         },
     ];
@@ -526,6 +704,161 @@ const DailySummaryDetails: React.FC = () => {
                 dailySummaryId={dailySummary?.id || 0}
                 onSuccess={handleMergeSuccess}
             />
+
+            <Modal
+                title="Importar desde Word"
+                open={modalImportWord}
+                onCancel={() => setModalImportWord(false)}
+                footer={null}
+                centered
+                width={500}
+            >
+                <div style={{ textAlign: 'center', padding: '20px' }}>
+                    <p style={{ marginBottom: '20px' }}>
+                        Selecciona un documento de Word (.docx o .doc) que tenga el mismo formato que los documentos exportados.
+                    </p>
+                    <Upload.Dragger
+                        name="file"
+                        multiple={false}
+                        beforeUpload={handleFileUpload}
+                        accept=".docx,.doc"
+                        disabled={importLoading}
+                    >
+                        <p className="ant-upload-drag-icon">
+                            <UploadOutlined />
+                        </p>
+                        <p className="ant-upload-text">
+                            Haz clic o arrastra el archivo aquí para subirlo
+                        </p>
+                        <p className="ant-upload-hint">
+                            Solo archivos .docx y .doc
+                        </p>
+                    </Upload.Dragger>
+                    {importLoading && (
+                        <div style={{ marginTop: '20px' }}>
+                            <p>Procesando documento...</p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
+
+            <Modal
+                title={`Preview de Importación - ${previewContents.length} contenidos encontrados`}
+                open={modalPreviewImport}
+                onCancel={() => {
+                    setModalPreviewImport(false);
+                    setPreviewContents([]);
+                    setImportedFile(null);
+                }}
+                footer={[
+                    <Button key="cancel" onClick={() => {
+                        setModalPreviewImport(false);
+                        setPreviewContents([]);
+                        setImportedFile(null);
+                    }}>
+                        Cancelar
+                    </Button>,
+                    <Button 
+                        key="confirm" 
+                        type="primary" 
+                        loading={importLoading}
+                        onClick={confirmImport}
+                        disabled={previewContents.length === 0}
+                    >
+                        Confirmar Importación ({previewContents.length} contenidos)
+                    </Button>
+                ]}
+                centered
+                width={900}
+            >
+                <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <div style={{ 
+                        marginBottom: '20px', 
+                        padding: '12px', 
+                        backgroundColor: '#f0f8ff', 
+                        borderRadius: '6px',
+                        border: '1px solid #d6e4ff'
+                    }}>
+                        <p style={{ margin: 0, color: '#1890ff', fontWeight: 500 }}>
+                            📄 Archivo: {importedFile?.name}
+                        </p>
+                        <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '14px' }}>
+                            Revisa cómo quedarían los contenidos después de la importación. 
+                            Los contenidos existentes se actualizarán con la información del documento.
+                        </p>
+                    </div>
+                    
+                    {previewContents.map((content, index) => (
+                        <Card 
+                            key={index} 
+                            size="small" 
+                            style={{ marginBottom: '16px' }}
+                            title={
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>Contenido {index + 1}</span>
+                                    <span style={{ 
+                                        padding: '2px 8px', 
+                                        borderRadius: '12px', 
+                                        fontSize: '12px',
+                                        backgroundColor: content.type === 'Nota' ? '#e6f7ff' : '#fff7e6',
+                                        color: content.type === 'Nota' ? '#1890ff' : '#fa8c16',
+                                        border: `1px solid ${content.type === 'Nota' ? '#91d5ff' : '#ffd591'}`
+                                    }}>
+                                        {content.type}
+                                    </span>
+                                </div>
+                            }
+                        >
+                            <div style={{ marginBottom: '12px' }}>
+                                <strong style={{ color: '#1890ff' }}>Título:</strong>
+                                <div style={{ marginTop: '4px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                    {content.title}
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <strong style={{ color: '#1890ff' }}>Encabezado:</strong>
+                                <div style={{ marginTop: '4px', padding: '8px', backgroundColor: '#fafafa', borderRadius: '4px' }}>
+                                    {content.head}
+                                </div>
+                            </div>
+                            <div style={{ marginBottom: '8px' }}>
+                                <strong style={{ color: '#1890ff' }}>Dependencia:</strong> {content.dependence}
+                            </div>
+                            <div style={{ marginBottom: '12px' }}>
+                                <strong style={{ color: '#1890ff' }}>Clasificación:</strong> {content.classification}
+                            </div>
+                            <div>
+                                <strong style={{ color: '#1890ff' }}>Contenido:</strong>
+                                <div 
+                                    style={{ 
+                                        marginTop: '8px', 
+                                        padding: '12px', 
+                                        backgroundColor: '#f5f5f5', 
+                                        borderRadius: '6px',
+                                        maxHeight: '200px',
+                                        overflowY: 'auto',
+                                        whiteSpace: 'pre-wrap',
+                                        fontSize: '14px',
+                                        lineHeight: '1.5'
+                                    }}
+                                >
+                                    {content.textContent}
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                    
+                    {previewContents.length === 0 && (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
+                            <p style={{ fontSize: '16px', marginBottom: '8px' }}>No se encontraron contenidos</p>
+                            <p style={{ fontSize: '14px', color: '#999' }}>
+                                El documento no contiene contenidos en el formato esperado (1.- Título).
+                            </p>
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </Row>
     );
 };
