@@ -24,6 +24,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
   const [editForm] = Form.useForm();
   const [editorContent, setEditorContent] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false) // Estado de loading
+  const [headCharCount, setHeadCharCount] = useState(0);
   const classification = Form.useWatch('classification', editForm);
 
   // 1. Efecto para setear datos del formulario
@@ -43,6 +44,8 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
         dependence: content.dependence,
         classification: content.classification
       });
+      // Inicializar el contador de caracteres del head
+      setHeadCharCount(content.head?.length || 0);
     }
   }, [content, editForm]);
 
@@ -50,7 +53,19 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
     setEditorContent(e.target.value);
   };
 
+  const handleHeadChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setHeadCharCount(value.length);
+  };
+
   const handleSave = async () => {
+    // Validar que el campo head tenga al menos 50 caracteres
+    const headValue = editForm.getFieldValue('head');
+    if (!headValue || headValue.length < 50) {
+      message.error('La cabeza debe tener al menos 50 caracteres');
+      return;
+    }
+
     // Convierte el texto plano a HTML antes de guardar
     const htmlContent = editorContent
       .replace(/\n/g, '<br>')
@@ -135,7 +150,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
 
             <Form.Item
               name="head"
-              label="Cabeza"
+              label={`Cabeza (${headCharCount}/50 caracteres mínimos)`}
               rules={[
                 { required: true, message: "Ingresa la cabeza" },
                 {
@@ -149,7 +164,12 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
               ]}
               validateTrigger={['onChange', 'onBlur']}
             >
-              <Input placeholder="Cabeza" style={{ borderRadius: '4px' }} />
+              <Input 
+                placeholder="Cabeza" 
+                style={{ borderRadius: '4px' }} 
+                onChange={handleHeadChange}
+                maxLength={500}
+              />
             </Form.Item>
 
             <Form.Item
@@ -264,9 +284,8 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
                 ) : (
                   <Button
                     type="primary"
-                    onClick={() =>
-                      handleSave()
-                    }
+                    onClick={() => handleSave()}
+                    disabled={headCharCount < 50}
                   >
                     Guardar
                   </Button>
@@ -342,7 +361,11 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
             {/* Sección de botones en el centro abajo */}
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Space>
-                <Button type="primary" onClick={() => handleSave()}>
+                <Button 
+                  type="primary" 
+                  onClick={() => handleSave()}
+                  disabled={headCharCount < 50}
+                >
                   Guardar
                 </Button>
               </Space>
@@ -373,7 +396,11 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
             {/* Sección de botones en el centro abajo */}
             <div style={{ display: "flex", justifyContent: "center", marginTop: "20px" }}>
               <Space>
-                <Button type="primary" onClick={() => handleSave()}>
+                <Button 
+                  type="primary" 
+                  onClick={() => handleSave()}
+                  disabled={headCharCount < 50}
+                >
                   Guardar
                 </Button>
 
