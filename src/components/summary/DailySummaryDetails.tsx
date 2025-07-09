@@ -482,6 +482,9 @@ const DailySummaryDetails: React.FC = () => {
                             title: newContent.title || existingContent.title,
                             head: newContent.head || existingContent.head,
                             textContent: newContent.textContent || existingContent.textContent,
+                            // Mantener dependencia y clasificación originales
+                            dependence: existingContent.dependence,
+                            classification: existingContent.classification,
                         });
                     }
                 }
@@ -784,7 +787,8 @@ const DailySummaryDetails: React.FC = () => {
                         </p>
                         <p style={{ margin: '8px 0 0 0', color: '#666', fontSize: '14px' }}>
                             Revisa cómo quedarían los contenidos después de la importación. 
-                            Los contenidos existentes se actualizarán con la información del documento.
+                            Se actualizarán: <strong>Título</strong>, <strong>Encabezado</strong> y <strong>Contenido</strong>. 
+                            <strong>Dependencia</strong> y <strong>Clasificación</strong> mantendrán sus valores originales.
                         </p>
                     </div>
                     
@@ -822,10 +826,16 @@ const DailySummaryDetails: React.FC = () => {
                                 </div>
                             </div>
                             <div style={{ marginBottom: '8px' }}>
-                                <strong style={{ color: '#1890ff' }}>Dependencia:</strong> {content.dependence}
+                                <strong style={{ color: '#999' }}>Dependencia:</strong> 
+                                <span style={{ color: '#999', fontStyle: 'italic' }}>
+                                    (No se modificará - mantendrá valor original)
+                                </span>
                             </div>
                             <div style={{ marginBottom: '12px' }}>
-                                <strong style={{ color: '#1890ff' }}>Clasificación:</strong> {content.classification}
+                                <strong style={{ color: '#999' }}>Clasificación:</strong> 
+                                <span style={{ color: '#999', fontStyle: 'italic' }}>
+                                    (No se modificará - mantendrá valor original)
+                                </span>
                             </div>
                             <div>
                                 <strong style={{ color: '#1890ff' }}>Contenido:</strong>
