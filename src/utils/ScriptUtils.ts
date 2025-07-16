@@ -12,6 +12,7 @@ export const handleSetScripts = async(
 ) => {
     try {
         const scripts = await getScripts();
+        console.log(scripts)
         setScripts( scripts );
 
     } catch ( error ) {

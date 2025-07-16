@@ -190,7 +190,7 @@ export const fetchLogin = async( email: string, password: string ) => {
 
 export const getScripts = async() => {
     const response = await axios.get(
-        `${ API_URL }/scripts`,
+        `${ API_URL }/scripts?limit=500`,
         getAuthHeaders()
     );
 

@@ -24,6 +24,8 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
     // STATES
     const [ searchTerm, setSearchTerm ] = useState('');
     const [dropdownOpen, setDropdownOpen] = useState(false)
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
     
     const navigate = useNavigate();
 
@@ -48,6 +50,26 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
         onClick: handleMenuClick,
       },
     ]
+
+    // Configuración de paginación
+    const paginationConfig = {
+        current: currentPage,
+        pageSize: pageSize,
+        total: filteredScripts.length,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total: number, range: [number, number]) => 
+            `${range[0]}-${range[1]} de ${total} guiones`,
+        pageSizeOptions: ['5', '10', '20', '50'],
+        onChange: (page: number, size: number) => {
+            setCurrentPage(page);
+            setPageSize(size);
+        },
+        onShowSizeChange: (current: number, size: number) => {
+            setCurrentPage(1);
+            setPageSize(size);
+        }
+    };
 
     const columns = [
         {
@@ -124,7 +146,12 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
                   onChange={(e) => setSearchTerm(e.target.value)}
                   style={{ marginBottom: 16 }}
               />
-              <Table columns={ columns } dataSource={ filteredScripts } rowKey="id" />
+              <Table 
+                columns={ columns } 
+                dataSource={ filteredScripts } 
+                rowKey="id" 
+                pagination={paginationConfig}
+              />
           </Card>
           ) : (
             <Card 
@@ -136,7 +163,12 @@ const ListScripts: React.FC<Props> = ({ scripts, setVisibleAdd, setVisibleEdit, 
                 onChange={(e) => setSearchTerm(e.target.value)}
                 style={{ marginBottom: 16 }}
             />
-            <Table columns={ columns } dataSource={ filteredScripts } rowKey="id" />
+            <Table 
+              columns={ columns } 
+              dataSource={ filteredScripts } 
+              rowKey="id" 
+              pagination={paginationConfig}
+            />
           </Card>
           )}
 

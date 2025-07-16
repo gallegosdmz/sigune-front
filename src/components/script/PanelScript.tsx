@@ -22,7 +22,7 @@ const PanelScript: React.FC = () => {
 
     useEffect(() => {
       ScriptUtils.handleSetScripts( setScripts );
-    })
+    }, []); // Array de dependencias vacío para que solo se ejecute una vez
 
     return (
         <Row gutter={[16, 16]} style={{ marginTop: '16px' }}>
