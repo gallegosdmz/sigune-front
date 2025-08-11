@@ -408,7 +408,7 @@ export const createNewsLetter = async(newsLetter: NewsLetter) => {
 
 export const getNewsLetters = async() => {
     const response = await axios.get(
-        `${ API_URL }/newsletters`,
+        `${ API_URL }/newsletters?limit=1000`,
         getAuthHeaders(),
     );
 

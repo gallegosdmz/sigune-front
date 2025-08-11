@@ -307,7 +307,7 @@ const EditContent: React.FC<Props> = ({ content, script, file, setFile, setConte
                     <Popconfirm
                       title="¿Estás seguro de aprobar esta nota?"
                       onConfirm={() =>
-                        ContentUtils.handleApprove(content!, script!, setContents, setVisibleViewNote)
+                        ContentUtils.handleApprove(content!, editForm, editorContent, script!, setVisibleViewNote, setLoading, setContents)
                       }
                       okText="Sí"
                       cancelText="No"

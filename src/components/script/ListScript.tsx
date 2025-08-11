@@ -337,26 +337,28 @@ const ListScript: React.FC = () => {
       if (config.textContent) {
         const contentParagraphs = parseHtmlToDocxRuns(item.textContent);
         paragraphs.push(...contentParagraphs);
-        
-        // Agregar el nombre completo del usuario debajo del contenido
-        if (item.user && typeof item.user === 'object' && 'name' in item.user && 'surname' in item.user) {
-          const user = item.user as User;
-          const userParagraph = new Paragraph({
-            children: [
-              new TextRun({
-                text: `${user.name} ${user.surname}`,
-                font: 'Arial',
-                size: 20,
-                italics: true,
-              }),
-            ],
-            spacing: { before: 100, after: 200 },
-            alignment: AlignmentType.RIGHT,
-          });
-          paragraphs.push(userParagraph);
-        }
-        
-        // Agregar línea horizontal de separación después de cada contenido
+      }
+      
+      // Agregar el nombre completo del usuario debajo del contenido (siempre que se exporte algo)
+      if ((config.title || config.head || config.textContent) && item.user && typeof item.user === 'object' && 'name' in item.user && 'surname' in item.user) {
+        const user = item.user as User;
+        const userParagraph = new Paragraph({
+          children: [
+            new TextRun({
+              text: `${user.name} ${user.surname}`,
+              font: 'Arial',
+              size: 20,
+              italics: true,
+            }),
+          ],
+          spacing: { before: 100, after: 200 },
+          alignment: AlignmentType.RIGHT,
+        });
+        paragraphs.push(userParagraph);
+      }
+      
+      // Agregar línea horizontal de separación después de cada contenido (siempre que se exporte algo)
+      if (config.title || config.head || config.textContent) {
         const separatorParagraph = new Paragraph({
           children: [
             new TextRun({

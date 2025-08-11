@@ -1,6 +1,6 @@
 import { Button, Card, FormInstance, Input as SearchInput, Space, Table } from "antd";
 import { NewsLetter } from "../../interfaces/NewsLetter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DatabaseOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import * as NewsLetterUtils from '../../utils/NewsLetterUtils'
 
@@ -26,11 +26,38 @@ const ListNewLetters: React.FC<Props> = ({
     editForm
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Resetear página cuando cambia el término de búsqueda
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const filteredNewsLetters = newsLetters.filter(
         (newsLetter) =>
             newsLetter.dependence.toUpperCase().includes(searchTerm.toUpperCase())
     );
+
+    // Configuración de paginación
+    const paginationConfig = {
+        current: currentPage,
+        pageSize: pageSize,
+        total: filteredNewsLetters.length,
+        showSizeChanger: true,
+        showQuickJumper: true,
+        showTotal: (total: number, range: [number, number]) => 
+            `${range[0]}-${range[1]} de ${total} boletines`,
+        pageSizeOptions: ['5', '10', '20', '50'],
+        onChange: (page: number, size: number) => {
+            setCurrentPage(page);
+            setPageSize(size);
+        },
+        onShowSizeChange: (current: number, size: number) => {
+            setCurrentPage(1);
+            setPageSize(size);
+        }
+    };
 
     const columns = [
         {
@@ -99,7 +126,12 @@ const ListNewLetters: React.FC<Props> = ({
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{ marginBottom: 16 }}
                     />
-                    <Table columns={ columns } dataSource={ filteredNewsLetters } rowKey="id" />
+                    <Table 
+                        columns={ columns } 
+                        dataSource={ filteredNewsLetters } 
+                        rowKey="id" 
+                        pagination={paginationConfig}
+                    />
                 </Card>
             ) : (
                 <Card 
@@ -110,7 +142,12 @@ const ListNewLetters: React.FC<Props> = ({
                         onChange={(e) => setSearchTerm(e.target.value)}
                         style={{ marginBottom: 16 }}
                     />
-                    <Table columns={ columns } dataSource={ filteredNewsLetters } rowKey="id" />
+                    <Table 
+                        columns={ columns } 
+                        dataSource={ filteredNewsLetters } 
+                        rowKey="id" 
+                        pagination={paginationConfig}
+                    />
                 </Card>
             )}
         </>
